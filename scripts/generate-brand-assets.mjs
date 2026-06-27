@@ -16,6 +16,27 @@ async function ensureFile(path, content) {
 
 async function renderIcon(path, size) {
   await mkdir(dirname(path), { recursive: true })
+  const iconSize = Math.round(size * 0.78)
+  const icon = await sharp(sourceIcon)
+    .resize(iconSize, iconSize, { fit: 'contain', kernel: 'lanczos3' })
+    .png()
+    .toBuffer()
+
+  await sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: navy,
+    },
+  })
+    .composite([{ input: icon, left: Math.round((size - iconSize) / 2), top: Math.round((size - iconSize) / 2) }])
+    .png()
+    .toFile(path)
+}
+
+async function renderFullBleedIcon(path, size) {
+  await mkdir(dirname(path), { recursive: true })
   await sharp(sourceIcon)
     .resize(size, size, { fit: 'cover', kernel: 'lanczos3' })
     .png()
@@ -24,7 +45,7 @@ async function renderIcon(path, size) {
 
 async function renderForeground(path, size) {
   await mkdir(dirname(path), { recursive: true })
-  const iconSize = Math.round(size * 0.86)
+  const iconSize = Math.round(size * 0.62)
   const icon = await sharp(sourceIcon)
     .resize(iconSize, iconSize, { fit: 'contain', kernel: 'lanczos3' })
     .png()
@@ -112,8 +133,8 @@ function orbitVector(size = 144) {
 `
 }
 
-await renderIcon(join(root, 'public/favicon.png'), 64)
-await renderIcon(join(root, 'public/brand-mark.png'), 256)
+await renderFullBleedIcon(join(root, 'public/favicon.png'), 64)
+await renderFullBleedIcon(join(root, 'public/brand-mark.png'), 256)
 await renderIcon(join(root, 'public/icon-192.png'), 192)
 await renderIcon(join(root, 'public/icon-512.png'), 512)
 await ensureFile(
