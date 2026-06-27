@@ -1,4 +1,4 @@
-package com.chapert.moneypl;
+package com.chapert.moneypl.mobile;
 
 import static org.junit.Assert.*;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.chapert.moneypl", appContext.getPackageName());
+        assertEquals("com.chapert.moneypl.mobile", appContext.getPackageName());
     }
 }
