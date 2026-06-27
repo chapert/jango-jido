@@ -120,8 +120,8 @@ await ensureFile(
   join(root, 'public/manifest.webmanifest'),
   JSON.stringify(
     {
-      name: '잔고지도',
-      short_name: '잔고지도',
+      name: '돈길',
+      short_name: '돈길',
       description: '오늘 써도 되는 돈과 90일 잔고 흐름을 보여주는 금전계획 앱',
       start_url: '/',
       display: 'standalone',

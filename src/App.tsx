@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.1.3'
+const APP_VERSION = '0.2.0'
 const REPO_OWNER = 'chapert'
 const REPO_NAME = 'jango-jido'
 const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
@@ -453,7 +453,7 @@ function UpdateBanner({
   return null
 }
 
-function BrandMark({ size = 44 }: { size?: number }) {
+function BrandMark({ size = 52 }: { size?: number }) {
   return <img src="/brand-mark.png" width={size} height={size} alt="" aria-hidden="true" />
 }
 
@@ -514,7 +514,7 @@ function App() {
           status: 'available',
           version,
           url,
-          name: release.name || `잔고지도 ${version}`,
+          name: release.name || `돈길 ${version}`,
           notes: release.body,
         })
         return
@@ -621,7 +621,7 @@ function App() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `jango-jido-backup-${isoDate(new Date())}.json`
+    link.download = `dongil-backup-${isoDate(new Date())}.json`
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -1169,8 +1169,8 @@ function App() {
             <BrandMark />
           </div>
           <div>
-            <strong>잔고지도</strong>
-            <span>Money plan coach</span>
+            <strong>돈길</strong>
+            <span>오늘 쓸 돈 코치</span>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-# 잔고지도
+# 돈길
 
 오늘 써도 되는 돈, 월말 예상 잔고, 90일 현금흐름을 한 화면에서 보는 금전계획 앱입니다.
 
@@ -63,8 +63,8 @@ https://github.com/chapert/jango-jido/releases/latest/download/jango-jido.apk
 태그 배포:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 GitHub Actions가 release APK를 빌드하려면 저장소 Secrets에 아래 값이 필요합니다.
