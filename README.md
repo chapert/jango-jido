@@ -24,9 +24,12 @@ npm run dev
 ## 웹 빌드
 
 ```bash
+npm run assets:brand
 npm run lint
 npm run build
 ```
+
+`npm run assets:brand`는 favicon, web app icon, Android launcher icon, splash 이미지를 같은 브랜드 원본에서 다시 생성합니다.
 
 ## Android APK 빌드
 

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.1.0'
+const APP_VERSION = '0.1.1'
 const REPO_OWNER = 'chapert'
 const REPO_NAME = 'jango-jido'
 const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
@@ -451,6 +451,33 @@ function UpdateBanner({
   }
 
   return null
+}
+
+function BrandMark({ size = 23 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 96 96" role="presentation" aria-hidden="true">
+      <path
+        d="M12 67c13-25 33-39 72-50"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="9"
+        opacity="0.5"
+      />
+      <rect x="23" y="24" width="50" height="50" rx="12" fill="#f8fafc" />
+      <path
+        d="M31 57c11-16 21-7 32-23 6-8 13-10 21-12"
+        fill="none"
+        stroke="#0f766e"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="6"
+      />
+      <path d="M33 65h35" fill="none" stroke="#df6a4f" strokeLinecap="round" strokeWidth="6" />
+      <circle cx="31" cy="57" r="4" fill="#17202a" />
+      <circle cx="84" cy="22" r="5" fill="#df6a4f" />
+    </svg>
+  )
 }
 
 function App() {
@@ -1162,7 +1189,7 @@ function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brandMark">
-            <Wallet size={23} />
+            <BrandMark size={28} />
           </div>
           <div>
             <strong>잔고지도</strong>
