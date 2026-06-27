@@ -148,13 +148,6 @@ button,
   color: var(--ink);
 }
 
-.todayLabel {
-  display: block;
-  margin-bottom: 3px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
 .updateButton {
   gap: 8px;
   height: 38px;

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.3.1'
+const APP_VERSION = '0.3.2'
 const REPO_OWNER = 'chapert'
 const REPO_NAME = 'jango-jido'
 const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
@@ -170,55 +170,54 @@ function createDefaultData(): AppData {
   const today = new Date()
   return {
     profile: {
-      currentBalance: 1_850_000,
-      monthlyIncome: 3_200_000,
-      payday: 25,
-      monthlyLivingBudget: 950_000,
-      safetyBuffer: 300_000,
+      currentBalance: 0,
+      monthlyIncome: 0,
+      payday: today.getDate(),
+      monthlyLivingBudget: 0,
+      safetyBuffer: 0,
     },
-    transactions: [
-      {
-        id: id(),
-        title: '점심',
-        amount: 12_000,
-        category: '식비',
-        date: isoDate(addDays(today, -1)),
-        type: 'expense',
-      },
-      {
-        id: id(),
-        title: '커피',
-        amount: 4_800,
-        category: '카페',
-        date: isoDate(today),
-        type: 'expense',
-      },
-      {
-        id: id(),
-        title: '중고 판매',
-        amount: 45_000,
-        category: '수입',
-        date: isoDate(addDays(today, -3)),
-        type: 'income',
-      },
-    ],
-    recurring: [
-      { id: id(), title: '월세', amount: 650_000, category: '고정비', day: 5, type: 'expense', enabled: true },
-      { id: id(), title: '통신비', amount: 69_000, category: '고정비', day: 12, type: 'expense', enabled: true },
-      { id: id(), title: '구독료', amount: 29_000, category: '고정비', day: 18, type: 'expense', enabled: true },
-      { id: id(), title: '보험료', amount: 84_000, category: '고정비', day: 20, type: 'expense', enabled: true },
-    ],
-    goals: [
-      { id: id(), title: '비상금', target: 3_000_000, saved: 820_000, dueDate: isoDate(addDays(today, 180)) },
-      { id: id(), title: '여행자금', target: 1_500_000, saved: 430_000, dueDate: isoDate(addDays(today, 120)) },
-    ],
+    transactions: [],
+    recurring: [],
+    goals: [],
   }
+}
+
+function isSeedData(data: AppData) {
+  const seededProfile =
+    data.profile.currentBalance === 1_850_000 &&
+    data.profile.monthlyIncome === 3_200_000 &&
+    data.profile.payday === 25 &&
+    data.profile.monthlyLivingBudget === 950_000 &&
+    data.profile.safetyBuffer === 300_000
+
+  const seededTransactions =
+    data.transactions.length === 3 &&
+    data.transactions.some((entry) => entry.title === '점심' && entry.amount === 12_000) &&
+    data.transactions.some((entry) => entry.title === '커피' && entry.amount === 4_800) &&
+    data.transactions.some((entry) => entry.title === '중고 판매' && entry.amount === 45_000)
+
+  const seededRecurring =
+    data.recurring.length === 4 &&
+    data.recurring.some((entry) => entry.title === '월세' && entry.amount === 650_000) &&
+    data.recurring.some((entry) => entry.title === '통신비' && entry.amount === 69_000) &&
+    data.recurring.some((entry) => entry.title === '구독료' && entry.amount === 29_000) &&
+    data.recurring.some((entry) => entry.title === '보험료' && entry.amount === 84_000)
+
+  const seededGoals =
+    data.goals.length === 2 &&
+    data.goals.some((entry) => entry.title === '비상금' && entry.target === 3_000_000 && entry.saved === 820_000) &&
+    data.goals.some((entry) => entry.title === '여행자금' && entry.target === 1_500_000 && entry.saved === 430_000)
+
+  return seededProfile && seededTransactions && seededRecurring && seededGoals
 }
 
 function loadData(): AppData {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return JSON.parse(saved) as AppData
+    if (saved) {
+      const parsed = JSON.parse(saved) as AppData
+      return isSeedData(parsed) ? createDefaultData() : parsed
+    }
   } catch {
     localStorage.removeItem(STORAGE_KEY)
   }
@@ -922,48 +921,52 @@ function App() {
           </button>
 
           <div className="list recurringList">
-            {data.recurring.map((item) => (
-              <div className="rowItem" key={item.id}>
-                <div className={`rowIcon ${item.type}`}>
-                  <Repeat size={17} />
+            {data.recurring.length ? (
+              data.recurring.map((item) => (
+                <div className="rowItem" key={item.id}>
+                  <div className={`rowIcon ${item.type}`}>
+                    <Repeat size={17} />
+                  </div>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <span>매월 {item.day}일 · {item.category}</span>
+                  </div>
+                  <em className={item.type === 'income' ? 'incomeText' : ''}>
+                    {item.type === 'income' ? '+' : '-'}{won(item.amount)}
+                  </em>
+                  <button
+                    type="button"
+                    className="toggle"
+                    aria-label={`${item.title} 활성화`}
+                    onClick={() =>
+                      setData((current) => ({
+                        ...current,
+                        recurring: current.recurring.map((entry) =>
+                          entry.id === item.id ? { ...entry, enabled: !entry.enabled } : entry,
+                        ),
+                      }))
+                    }
+                  >
+                    <span className={item.enabled ? 'on' : ''} />
+                  </button>
+                  <button
+                    type="button"
+                    className="iconButton"
+                    aria-label={`${item.title} 삭제`}
+                    onClick={() =>
+                      setData((current) => ({
+                        ...current,
+                        recurring: current.recurring.filter((entry) => entry.id !== item.id),
+                      }))
+                    }
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-                <div>
-                  <strong>{item.title}</strong>
-                  <span>매월 {item.day}일 · {item.category}</span>
-                </div>
-                <em className={item.type === 'income' ? 'incomeText' : ''}>
-                  {item.type === 'income' ? '+' : '-'}{won(item.amount)}
-                </em>
-                <button
-                  type="button"
-                  className="toggle"
-                  aria-label={`${item.title} 활성화`}
-                  onClick={() =>
-                    setData((current) => ({
-                      ...current,
-                      recurring: current.recurring.map((entry) =>
-                        entry.id === item.id ? { ...entry, enabled: !entry.enabled } : entry,
-                      ),
-                    }))
-                  }
-                >
-                  <span className={item.enabled ? 'on' : ''} />
-                </button>
-                <button
-                  type="button"
-                  className="iconButton"
-                  aria-label={`${item.title} 삭제`}
-                  onClick={() =>
-                    setData((current) => ({
-                      ...current,
-                      recurring: current.recurring.filter((entry) => entry.id !== item.id),
-                    }))
-                  }
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+              ))
+            ) : (
+              <EmptyState icon={Repeat} title="반복 항목이 비어 있어요" />
+            )}
           </div>
         </article>
 
@@ -1201,7 +1204,6 @@ function App() {
       <div className="contentPane">
         <header className="topBar">
           <div>
-            <span className="todayLabel">{new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}</span>
             <strong>{tabItems.find((item) => item.id === activeTab)?.label}</strong>
           </div>
           <button type="button" className="updateButton" onClick={() => void checkForUpdate(true)}>
