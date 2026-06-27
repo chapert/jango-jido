@@ -1,4 +1,4 @@
-package com.chapert.moneypl;
+package com.chapert.moneypl.app;
 
 import static org.junit.Assert.*;
 

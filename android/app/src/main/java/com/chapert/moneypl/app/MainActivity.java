@@ -1,4 +1,4 @@
-package com.chapert.moneypl;
+package com.chapert.moneypl.app;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
