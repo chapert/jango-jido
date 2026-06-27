@@ -14,8 +14,8 @@ android {
         applicationId "com.chapert.moneypl.clean"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 20
-        versionName "0.4.0"
+        versionCode 21
+        versionName "0.4.1"
     }
 
     signingConfigs {

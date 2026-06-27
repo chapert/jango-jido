@@ -64,8 +64,8 @@ https://moneypl-apk-vercel.vercel.app/moneypl.apk
 태그 배포:
 
 ```bash
-git tag v0.4.0
-git push origin v0.4.0
+git tag v0.4.1
+git push origin v0.4.1
 ```
 
 GitHub Actions가 release APK를 빌드하려면 저장소 Secrets에 아래 값이 필요합니다.

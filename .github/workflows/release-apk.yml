@@ -47,6 +47,9 @@ jobs:
       - name: Build web assets
         run: npm run build
 
+      - name: Sync Capacitor Gradle scaffolding
+        run: npx cap sync android
+
       - name: Prepare simple Android assets
         run: |
           rm -rf android/simpleapp/src/main/assets/public
