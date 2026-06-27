@@ -46,6 +46,12 @@
   flex: 0 0 auto;
 }
 
+.brandMark img {
+  display: block;
+  object-fit: cover;
+  image-rendering: auto;
+}
+
 .brand strong {
   display: block;
   font-size: 18px;

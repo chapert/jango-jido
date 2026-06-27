@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.1.2'
+const APP_VERSION = '0.1.3'
 const REPO_OWNER = 'chapert'
 const REPO_NAME = 'jango-jido'
 const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
@@ -453,30 +453,8 @@ function UpdateBanner({
   return null
 }
 
-function BrandMark({ size = 23 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 96 96" role="presentation" aria-hidden="true">
-      <defs>
-        <linearGradient id="brandMarkBg" x1="14" y1="8" x2="82" y2="91" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#0b1220" />
-          <stop offset="0.68" stopColor="#0d1928" />
-          <stop offset="1" stopColor="#132b33" />
-        </linearGradient>
-      </defs>
-      <rect width="96" height="96" rx="22" fill="url(#brandMarkBg)" />
-      <path
-        d="M28 22 L38 70 L48 30 L58 70 L68 22"
-        fill="none"
-        stroke="#f8fafc"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="7"
-      />
-      <path d="M26 40 H70" fill="none" stroke="#9be3d7" strokeLinecap="round" strokeWidth="5" />
-      <path d="M29 51 H67" fill="none" stroke="#9be3d7" strokeLinecap="round" strokeWidth="5" />
-      <path d="M35 77 H61" fill="none" stroke="#e7b66b" strokeLinecap="round" strokeWidth="5" />
-    </svg>
-  )
+function BrandMark({ size = 44 }: { size?: number }) {
+  return <img src="/brand-mark.png" width={size} height={size} alt="" aria-hidden="true" />
 }
 
 function App() {
@@ -1188,7 +1166,7 @@ function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brandMark">
-            <BrandMark size={28} />
+            <BrandMark />
           </div>
           <div>
             <strong>잔고지도</strong>
