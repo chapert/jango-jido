@@ -51,6 +51,12 @@ android/app/build/outputs/apk/release/app-release.apk
 
 앱은 `chapert/jango-jido`의 최신 GitHub Release를 확인합니다. 새 태그 릴리즈에 APK가 올라가 있으면 앱 안에 다운로드 안내가 뜹니다.
 
+항상 최신 APK를 받는 고정 링크:
+
+```text
+https://github.com/chapert/jango-jido/releases/latest/download/jango-jido.apk
+```
+
 태그 배포:
 
 ```bash
