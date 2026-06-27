@@ -1,4 +1,4 @@
-package com.chapert.moneypl.mobile;
+package com.chapert.moneypl;
 
 import android.content.ComponentName;
 import android.content.Context;

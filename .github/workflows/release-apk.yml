@@ -50,20 +50,14 @@ jobs:
       - name: Sync Capacitor Gradle scaffolding
         run: npx cap sync android
 
-      - name: Prepare simple Android assets
-        run: |
-          rm -rf android/simpleapp/src/main/assets/public
-          mkdir -p android/simpleapp/src/main/assets/public
-          cp -R dist/. android/simpleapp/src/main/assets/public/
-
       - name: Build signed release APK
         working-directory: android
-        run: ./gradlew :simpleapp:assembleRelease
+        run: ./gradlew :app:assembleRelease
 
       - name: Prepare release asset
         run: |
-          cp android/simpleapp/build/outputs/apk/release/simpleapp-release.apk "moneypl-${GITHUB_REF_NAME}.apk"
-          cp android/simpleapp/build/outputs/apk/release/simpleapp-release.apk moneypl.apk
+          cp android/app/build/outputs/apk/release/app-release.apk "moneypl-${GITHUB_REF_NAME}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk moneypl.apk
 
       - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2

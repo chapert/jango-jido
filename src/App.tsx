@@ -25,10 +25,11 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.4.2'
+const APP_VERSION = '0.5.0'
 const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
+const ENABLE_NATIVE_AUTO_CAPTURE = false
 
 type Tab = 'home' | 'record' | 'plan' | 'goals' | 'settings'
 type EntryType = 'expense' | 'income'
@@ -591,7 +592,7 @@ function App() {
   const [notificationAccessEnabled, setNotificationAccessEnabled] = useState(false)
   const [autoCaptureItems, setAutoCaptureItems] = useState<NativeAutoCaptureItem[]>([])
   const [autoCaptureMessage, setAutoCaptureMessage] = useState('')
-  const isAndroid = Capacitor.getPlatform() === 'android'
+  const isAutoCaptureReady = ENABLE_NATIVE_AUTO_CAPTURE && Capacitor.getPlatform() === 'android'
 
   const recentTransactions = [...data.transactions]
     .sort((a, b) => parseIso(b.date).getTime() - parseIso(a.date).getTime())
@@ -613,8 +614,8 @@ function App() {
   )
 
   const refreshAutoCapture = useCallback(async () => {
-    if (!isAndroid) {
-      setAutoCaptureMessage('Android APK에서 사용할 수 있어요.')
+    if (!isAutoCaptureReady) {
+      setAutoCaptureMessage('자동 기록은 다음 업데이트에서 다시 연결할게요. 지금은 수동 기록을 먼저 안정화했어요.')
       return
     }
 
@@ -629,12 +630,12 @@ function App() {
     } catch (error) {
       setAutoCaptureMessage(error instanceof Error ? error.message : '자동 기록을 확인하지 못했어요.')
     }
-  }, [isAndroid])
+  }, [isAutoCaptureReady])
 
   useEffect(() => {
     void refreshAutoCapture()
 
-    if (!isAndroid) return undefined
+    if (!isAutoCaptureReady) return undefined
 
     let listener: PluginListenerHandle | undefined
     void MoneyplAutoCapture.addListener('notificationCaptured', (event) => {
@@ -647,7 +648,7 @@ function App() {
     return () => {
       void listener?.remove()
     }
-  }, [isAndroid, refreshAutoCapture])
+  }, [isAutoCaptureReady, refreshAutoCapture])
 
   const checkForUpdate = async (manual = false) => {
     setUpdate({ status: 'checking' })
@@ -713,7 +714,7 @@ function App() {
 
   const removeAutoCandidates = async (ids: string[]) => {
     setAutoCaptureItems((current) => current.filter((item) => !ids.includes(item.id)))
-    if (!isAndroid) return
+    if (!isAutoCaptureReady) return
     try {
       await MoneyplAutoCapture.removePendingNotifications({ ids })
     } catch {
@@ -745,8 +746,8 @@ function App() {
   }
 
   const openAutoCaptureSettings = async () => {
-    if (!isAndroid) {
-      setAutoCaptureMessage('Android APK에서 사용할 수 있어요.')
+    if (!isAutoCaptureReady) {
+      setAutoCaptureMessage('자동 기록은 다음 업데이트에서 다시 연결할게요. 지금은 수동 기록을 먼저 안정화했어요.')
       return
     }
 
@@ -1025,7 +1026,7 @@ function App() {
           </button>
           <button type="button" className={notificationAccessEnabled ? 'ghost' : 'primary'} onClick={openAutoCaptureSettings}>
             <Bell size={17} />
-            알림 접근
+            {ENABLE_NATIVE_AUTO_CAPTURE ? '알림 접근' : '준비 중'}
           </button>
         </div>
         {autoCaptureMessage ? <p className="statusText">{autoCaptureMessage}</p> : null}
@@ -1370,15 +1371,21 @@ function App() {
           <div className="sectionHeader">
             <div>
               <h2>자동 기록</h2>
-              <span>{notificationAccessEnabled ? '알림 접근 연결됨' : '알림 접근 대기'}</span>
+              <span>
+                {ENABLE_NATIVE_AUTO_CAPTURE
+                  ? notificationAccessEnabled
+                    ? '알림 접근 연결됨'
+                    : '알림 접근 대기'
+                  : '다음 업데이트에서 연결'}
+              </span>
             </div>
             <Bell size={18} />
           </div>
-          <p className="softText">은행·카드 알림을 후보로 모아 기록 탭에서 확인합니다.</p>
+          <p className="softText">은행·카드 알림 자동 후보는 실행 안정화 뒤 다시 연결합니다.</p>
           <div className="buttonRow">
             <button type="button" className={notificationAccessEnabled ? 'secondary' : 'primary'} onClick={openAutoCaptureSettings}>
               <Bell size={17} />
-              알림 접근
+              {ENABLE_NATIVE_AUTO_CAPTURE ? '알림 접근' : '준비 중'}
             </button>
             <button type="button" className="secondary" onClick={() => void refreshAutoCapture()}>
               <RefreshCw size={17} />

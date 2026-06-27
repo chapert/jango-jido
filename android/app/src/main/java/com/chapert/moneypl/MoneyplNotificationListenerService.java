@@ -1,4 +1,4 @@
-package com.chapert.moneypl.mobile;
+package com.chapert.moneypl;
 
 import android.app.Notification;
 import android.content.pm.ApplicationInfo;
