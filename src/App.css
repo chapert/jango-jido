@@ -786,6 +786,67 @@ button,
   cursor: pointer;
 }
 
+.autoCaptureBlock {
+  margin-top: 18px;
+}
+
+.autoCaptureControls {
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.autoCandidateList {
+  display: grid;
+  gap: 10px;
+}
+
+.autoCandidate {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
+.autoCandidateMain,
+.autoCandidateActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.autoCandidate strong {
+  display: block;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.autoCandidate span,
+.autoCandidate p {
+  color: var(--muted);
+}
+
+.autoCandidate span {
+  font-size: 12px;
+}
+
+.autoCandidate em {
+  color: #a9442f;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.autoCandidate p {
+  max-height: 48px;
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .emptyState {
   min-height: 120px;
   display: grid;
@@ -856,7 +917,9 @@ button,
 
   .quickForm,
   .scenarioBox,
-  .buttonRow {
+  .buttonRow,
+  .autoCandidateMain,
+  .autoCandidateActions {
     flex-wrap: wrap;
   }
 
@@ -938,7 +1001,10 @@ button,
   }
 
   .updateBanner .primary,
-  .updateBanner .ghost {
+  .updateBanner .ghost,
+  .autoCandidateActions .buttonRow,
+  .autoCandidateActions .primary,
+  .autoCandidateActions .ghost {
     width: 100%;
   }
 }

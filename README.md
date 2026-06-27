@@ -12,6 +12,7 @@
 - 목표저축 월별 필요 금액 계산
 - 큰 소비 시뮬레이션
 - JSON 백업/복원
+- 은행·카드 알림 기반 자동 기록 후보
 - Vercel 직접 APK 링크 기반 인앱 업데이트 확인
 
 ## 개발
@@ -63,8 +64,8 @@ https://moneypl-apk-vercel.vercel.app/moneypl.apk
 태그 배포:
 
 ```bash
-git tag v0.3.3
-git push origin v0.3.3
+git tag v0.3.4
+git push origin v0.3.4
 ```
 
 GitHub Actions가 release APK를 빌드하려면 저장소 Secrets에 아래 값이 필요합니다.

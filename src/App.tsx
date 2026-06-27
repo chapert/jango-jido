@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react'
 import { Browser } from '@capacitor/browser'
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import {
   AlertTriangle,
   BarChart3,
@@ -24,7 +25,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.3.3'
+const APP_VERSION = '0.3.4'
 const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
@@ -85,6 +86,40 @@ type UpdateManifest = {
 type UpdateState =
   | { status: 'idle' | 'checking' | 'latest' | 'error'; message?: string }
   | { status: 'available'; version: string; url: string; name: string; notes?: string }
+
+type NativeAutoCaptureItem = {
+  id: string
+  packageName: string
+  appName: string
+  title?: string
+  text?: string
+  bigText?: string
+  subText?: string
+  postedAt: number
+  capturedAt: number
+}
+
+type AutoCaptureCandidate = NativeAutoCaptureItem & {
+  raw: string
+  merchant: string
+  amount: number
+  type: EntryType
+  category: string
+  confidence: number
+}
+
+type MoneyplAutoCapturePlugin = {
+  isNotificationAccessEnabled: () => Promise<{ enabled: boolean }>
+  openNotificationAccessSettings: () => Promise<void>
+  getPendingNotifications: () => Promise<{ items: NativeAutoCaptureItem[] }>
+  removePendingNotifications: (options: { ids: string[] }) => Promise<void>
+  addListener: (
+    eventName: 'notificationCaptured',
+    listenerFunc: (event: { item: NativeAutoCaptureItem }) => void,
+  ) => Promise<PluginListenerHandle>
+}
+
+const MoneyplAutoCapture = registerPlugin<MoneyplAutoCapturePlugin>('MoneyplAutoCapture')
 
 const categories = ['식비', '카페', '교통', '생활', '쇼핑', '고정비', '수입', '기타']
 
@@ -163,6 +198,77 @@ function compareVersions(a: string, b: string) {
     if (diff !== 0) return diff
   }
   return 0
+}
+
+function compact(value: string) {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+function autoCaptureText(item: NativeAutoCaptureItem) {
+  return compact([item.title, item.text, item.bigText, item.subText].filter(Boolean).join(' '))
+}
+
+function inferAutoType(raw: string): EntryType {
+  if (/입금|급여|환불|취소|송금받|받았/.test(raw)) return 'income'
+  return 'expense'
+}
+
+function inferAutoCategory(raw: string, type: EntryType) {
+  if (type === 'income') return '수입'
+  if (/커피|카페|스타벅스|투썸|이디야|메가커피|컴포즈/.test(raw)) return '카페'
+  if (/버스|지하철|택시|교통|주유|하이패스|철도|KTX/.test(raw)) return '교통'
+  if (/쿠팡|쇼핑|마트|편의점|올리브영|배달|요기요|배민/.test(raw)) return '쇼핑'
+  if (/통신|보험|관리비|월세|구독|자동이체/.test(raw)) return '고정비'
+  if (/식당|식비|음식|분식|치킨|피자|카페테리아/.test(raw)) return '식비'
+  return '기타'
+}
+
+function inferAutoMerchant(raw: string, amountText: string | undefined, appName: string) {
+  const afterAmount = amountText ? raw.split(amountText).slice(1).join(amountText) : ''
+  const candidate = compact(afterAmount)
+    .split(/잔액|누적|승인번호|카드번호|일시불|할부|출금|입금|결제|승인|사용/)
+    .map((part) =>
+      compact(
+        part
+          .replace(/\[[^\]]+\]/g, ' ')
+          .replace(/[0-9]{1,2}[./:-][0-9]{1,2}(?:[./:-][0-9]{1,2})?/g, ' ')
+          .replace(/[0-9,]+\s*원/g, ' ')
+          .replace(/KRW|USD|카드|체크|은행|앱|알림/g, ' '),
+      ),
+    )
+    .find((part) => part.length >= 2)
+
+  if (candidate) return candidate.slice(0, 24)
+
+  const cleaned = compact(
+    raw
+      .replace(/\[[^\]]+\]/g, ' ')
+      .replace(/[0-9,]+\s*원/g, ' ')
+      .replace(/입금|출금|결제|승인|사용|잔액|누적|카드|체크|은행|알림/g, ' '),
+  )
+  return (cleaned || `${appName} 알림`).slice(0, 24)
+}
+
+function inferAutoCandidate(item: NativeAutoCaptureItem): AutoCaptureCandidate | null {
+  const raw = autoCaptureText(item)
+  const amountMatch = raw.match(/([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)\s*원/)
+  const amount = amountMatch ? numberValue(amountMatch[1]) : 0
+  if (!amount) return null
+
+  const type = inferAutoType(raw)
+  const category = inferAutoCategory(raw, type)
+  const merchant = inferAutoMerchant(raw, amountMatch?.[0], item.appName)
+  const confidence = Math.min(0.95, 0.45 + (merchant ? 0.2 : 0) + (/(입금|출금|결제|승인|사용)/.test(raw) ? 0.2 : 0))
+
+  return {
+    ...item,
+    raw,
+    merchant,
+    amount,
+    type,
+    category,
+    confidence,
+  }
 }
 
 function createDefaultData(): AppData {
@@ -482,6 +588,10 @@ function App() {
   })
   const [scenarioAmount, setScenarioAmount] = useState('300000')
   const [topUps, setTopUps] = useState<Record<string, string>>({})
+  const [notificationAccessEnabled, setNotificationAccessEnabled] = useState(false)
+  const [autoCaptureItems, setAutoCaptureItems] = useState<NativeAutoCaptureItem[]>([])
+  const [autoCaptureMessage, setAutoCaptureMessage] = useState('')
+  const isAndroid = Capacitor.getPlatform() === 'android'
 
   const recentTransactions = [...data.transactions]
     .sort((a, b) => parseIso(b.date).getTime() - parseIso(a.date).getTime())
@@ -496,6 +606,48 @@ function App() {
       monthEndBalance: plan.monthEndBalance - amount,
     }
   }, [plan.daysLeft, plan.monthEndBalance, plan.safeDaily, scenarioAmount])
+
+  const autoCandidates = useMemo(
+    () => autoCaptureItems.map(inferAutoCandidate).filter((candidate): candidate is AutoCaptureCandidate => Boolean(candidate)),
+    [autoCaptureItems],
+  )
+
+  const refreshAutoCapture = useCallback(async () => {
+    if (!isAndroid) {
+      setAutoCaptureMessage('Android APK에서 사용할 수 있어요.')
+      return
+    }
+
+    try {
+      const [access, pending] = await Promise.all([
+        MoneyplAutoCapture.isNotificationAccessEnabled(),
+        MoneyplAutoCapture.getPendingNotifications(),
+      ])
+      setNotificationAccessEnabled(access.enabled)
+      setAutoCaptureItems(pending.items || [])
+      setAutoCaptureMessage(access.enabled ? '알림 접근이 연결됐어요.' : '알림 접근 권한을 켜야 후보를 받을 수 있어요.')
+    } catch (error) {
+      setAutoCaptureMessage(error instanceof Error ? error.message : '자동 기록을 확인하지 못했어요.')
+    }
+  }, [isAndroid])
+
+  useEffect(() => {
+    void refreshAutoCapture()
+
+    if (!isAndroid) return undefined
+
+    let listener: PluginListenerHandle | undefined
+    void MoneyplAutoCapture.addListener('notificationCaptured', (event) => {
+      setAutoCaptureItems((current) => [event.item, ...current.filter((item) => item.id !== event.item.id)].slice(0, 80))
+      setAutoCaptureMessage('새 자동 기록 후보가 들어왔어요.')
+    }).then((handle) => {
+      listener = handle
+    })
+
+    return () => {
+      void listener?.remove()
+    }
+  }, [isAndroid, refreshAutoCapture])
 
   const checkForUpdate = async (manual = false) => {
     setUpdate({ status: 'checking' })
@@ -557,6 +709,53 @@ function App() {
     }))
 
     setTransactionForm((current) => ({ ...current, title: '', amount: '', date: isoDate(new Date()) }))
+  }
+
+  const removeAutoCandidates = async (ids: string[]) => {
+    setAutoCaptureItems((current) => current.filter((item) => !ids.includes(item.id)))
+    if (!isAndroid) return
+    try {
+      await MoneyplAutoCapture.removePendingNotifications({ ids })
+    } catch {
+      setAutoCaptureMessage('후보 정리에 실패했어요.')
+    }
+  }
+
+  const addAutoCandidate = (candidate: AutoCaptureCandidate) => {
+    setData((current) => ({
+      ...current,
+      transactions: [
+        {
+          id: id(),
+          title: candidate.merchant,
+          amount: candidate.amount,
+          category: candidate.category,
+          date: isoDate(new Date(candidate.postedAt || Date.now())),
+          type: candidate.type,
+        },
+        ...current.transactions,
+      ],
+      profile: {
+        ...current.profile,
+        currentBalance:
+          current.profile.currentBalance + (candidate.type === 'income' ? candidate.amount : -candidate.amount),
+      },
+    }))
+    void removeAutoCandidates([candidate.id])
+  }
+
+  const openAutoCaptureSettings = async () => {
+    if (!isAndroid) {
+      setAutoCaptureMessage('Android APK에서 사용할 수 있어요.')
+      return
+    }
+
+    try {
+      await MoneyplAutoCapture.openNotificationAccessSettings()
+      setAutoCaptureMessage('설정에서 머니플 알림 접근을 켠 뒤 새로고침하세요.')
+    } catch {
+      setAutoCaptureMessage('알림 접근 설정을 열지 못했어요.')
+    }
   }
 
   const addRecurring = () => {
@@ -805,6 +1004,64 @@ function App() {
           <Plus size={18} />
           기록 추가
         </button>
+      </section>
+
+      <section className="sectionBlock autoCaptureBlock">
+        <div className="sectionHeader">
+          <div>
+            <span className="eyebrow muted">
+              <Bell size={15} />
+              자동 기록 후보
+            </span>
+            <h2>은행·카드 알림에서 읽은 내역</h2>
+          </div>
+          <span className="pill">{autoCandidates.length}건</span>
+        </div>
+
+        <div className="buttonRow autoCaptureControls">
+          <button type="button" className="secondary" onClick={() => void refreshAutoCapture()}>
+            <RefreshCw size={17} />
+            새로고침
+          </button>
+          <button type="button" className={notificationAccessEnabled ? 'ghost' : 'primary'} onClick={openAutoCaptureSettings}>
+            <Bell size={17} />
+            알림 접근
+          </button>
+        </div>
+        {autoCaptureMessage ? <p className="statusText">{autoCaptureMessage}</p> : null}
+
+        <div className="autoCandidateList">
+          {autoCandidates.length ? (
+            autoCandidates.map((candidate) => (
+              <article className="autoCandidate" key={candidate.id}>
+                <div className="autoCandidateMain">
+                  <div>
+                    <strong>{candidate.merchant}</strong>
+                    <span>{candidate.appName} · {new Date(candidate.postedAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <em className={candidate.type === 'income' ? 'incomeText' : ''}>
+                    {candidate.type === 'income' ? '+' : '-'}{won(candidate.amount)}
+                  </em>
+                </div>
+                <p>{candidate.raw}</p>
+                <div className="autoCandidateActions">
+                  <span>{candidate.category} · {Math.round(candidate.confidence * 100)}%</span>
+                  <div className="buttonRow">
+                    <button type="button" className="primary small" onClick={() => addAutoCandidate(candidate)}>
+                      <Plus size={15} />
+                      기록
+                    </button>
+                    <button type="button" className="ghost small" onClick={() => void removeAutoCandidates([candidate.id])}>
+                      제외
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))
+          ) : (
+            <EmptyState icon={Bell} title="자동 기록 후보가 비어 있어요" />
+          )}
+        </div>
       </section>
 
       <section className="split">
@@ -1111,6 +1368,28 @@ function App() {
       <section className="split">
         <article className="sectionBlock compact">
           <div className="sectionHeader">
+            <div>
+              <h2>자동 기록</h2>
+              <span>{notificationAccessEnabled ? '알림 접근 연결됨' : '알림 접근 대기'}</span>
+            </div>
+            <Bell size={18} />
+          </div>
+          <p className="softText">은행·카드 알림을 후보로 모아 기록 탭에서 확인합니다.</p>
+          <div className="buttonRow">
+            <button type="button" className={notificationAccessEnabled ? 'secondary' : 'primary'} onClick={openAutoCaptureSettings}>
+              <Bell size={17} />
+              알림 접근
+            </button>
+            <button type="button" className="secondary" onClick={() => void refreshAutoCapture()}>
+              <RefreshCw size={17} />
+              상태 확인
+            </button>
+          </div>
+          {autoCaptureMessage ? <p className="statusText">{autoCaptureMessage}</p> : null}
+        </article>
+
+        <article className="sectionBlock compact">
+          <div className="sectionHeader">
             <h2>업데이트</h2>
             <span className="pill">v{APP_VERSION}</span>
           </div>
@@ -1146,7 +1425,7 @@ function App() {
               <input type="file" accept="application/json" onChange={(event) => void importData(event.target.files?.[0])} />
             </label>
             <button type="button" className="ghost" onClick={() => setData(createDefaultData())}>
-              샘플 초기화
+              전체 초기화
             </button>
           </div>
         </article>
