@@ -40,11 +40,9 @@
   width: 44px;
   height: 44px;
   border-radius: 8px;
-  background:
-    radial-gradient(circle at 76% 18%, rgba(223, 106, 79, 0.24), transparent 28%),
-    #0f766e;
-  color: #a7dedd;
-  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.34);
+  overflow: hidden;
+  background: #0b1220;
+  box-shadow: 0 14px 30px rgba(11, 18, 32, 0.38);
   flex: 0 0 auto;
 }
 

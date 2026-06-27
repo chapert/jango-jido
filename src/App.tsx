@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.1.1'
+const APP_VERSION = '0.1.2'
 const REPO_OWNER = 'chapert'
 const REPO_NAME = 'jango-jido'
 const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
@@ -456,26 +456,25 @@ function UpdateBanner({
 function BrandMark({ size = 23 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 96 96" role="presentation" aria-hidden="true">
+      <defs>
+        <linearGradient id="brandMarkBg" x1="14" y1="8" x2="82" y2="91" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#0b1220" />
+          <stop offset="0.68" stopColor="#0d1928" />
+          <stop offset="1" stopColor="#132b33" />
+        </linearGradient>
+      </defs>
+      <rect width="96" height="96" rx="22" fill="url(#brandMarkBg)" />
       <path
-        d="M12 67c13-25 33-39 72-50"
+        d="M28 22 L38 70 L48 30 L58 70 L68 22"
         fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="9"
-        opacity="0.5"
-      />
-      <rect x="23" y="24" width="50" height="50" rx="12" fill="#f8fafc" />
-      <path
-        d="M31 57c11-16 21-7 32-23 6-8 13-10 21-12"
-        fill="none"
-        stroke="#0f766e"
+        stroke="#f8fafc"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="6"
+        strokeWidth="7"
       />
-      <path d="M33 65h35" fill="none" stroke="#df6a4f" strokeLinecap="round" strokeWidth="6" />
-      <circle cx="31" cy="57" r="4" fill="#17202a" />
-      <circle cx="84" cy="22" r="5" fill="#df6a4f" />
+      <path d="M26 40 H70" fill="none" stroke="#9be3d7" strokeLinecap="round" strokeWidth="5" />
+      <path d="M29 51 H67" fill="none" stroke="#9be3d7" strokeLinecap="round" strokeWidth="5" />
+      <path d="M35 77 H61" fill="none" stroke="#e7b66b" strokeLinecap="round" strokeWidth="5" />
     </svg>
   )
 }

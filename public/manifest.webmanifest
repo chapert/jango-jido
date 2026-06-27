@@ -4,8 +4,8 @@
   "description": "오늘 써도 되는 돈과 90일 잔고 흐름을 보여주는 금전계획 앱",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#111827",
+  "background_color": "#0B1220",
+  "theme_color": "#0B1220",
   "icons": [
     {
       "src": "/icon-192.png",

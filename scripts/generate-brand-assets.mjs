@@ -4,12 +4,12 @@ import sharp from 'sharp'
 
 const root = new URL('..', import.meta.url).pathname
 
-const navy = '#111827'
-const ink = '#17202A'
-const teal = '#50A3A2'
-const tealDark = '#0F766E'
+const navy = '#0B1220'
+const deep = '#132B33'
+const teal = '#12A594'
+const mint = '#9BE3D7'
 const cream = '#F8FAFC'
-const orange = '#DF6A4F'
+const amber = '#E7B66B'
 
 async function ensureFile(path, content) {
   await mkdir(dirname(path), { recursive: true })
@@ -21,42 +21,52 @@ async function renderPng(path, svg, width, height = width) {
   await sharp(Buffer.from(svg)).resize(width, height).png().toFile(path)
 }
 
-function logoSvg(size = 512, options = {}) {
-  const { transparent = false, padding = 48 } = options
-  const bg = transparent
-    ? ''
-    : `<rect width="${size}" height="${size}" rx="${Math.round(size * 0.21)}" fill="${navy}"/>`
-  const scale = size / 512
-  const p = padding * scale
-  const cardX = 112 * scale
-  const cardY = 132 * scale
-  const cardW = 288 * scale
-  const cardH = 248 * scale
-  const radius = 42 * scale
-  const stroke = 28 * scale
-  const safety = 24 * scale
-  const dot = 15 * scale
+function wonMark(scale = 1, options = {}) {
+  const { stroke = cream, bar = mint, accent = amber, opacity = 1 } = options
+  return `<g opacity="${opacity}">
+    <path d="M145 148 L202 360 L256 184 L310 360 L367 148" fill="none" stroke="${stroke}" stroke-width="${38 * scale}" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M138 238 H374" fill="none" stroke="${bar}" stroke-width="${23 * scale}" stroke-linecap="round"/>
+    <path d="M150 292 H362" fill="none" stroke="${bar}" stroke-width="${23 * scale}" stroke-linecap="round"/>
+    <path d="M184 386 H328" fill="none" stroke="${accent}" stroke-width="${18 * scale}" stroke-linecap="round"/>
+  </g>`
+}
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  ${bg}
-  <path d="M${p + 18 * scale} ${360 * scale} C${122 * scale} ${248 * scale} ${224 * scale} ${196 * scale} ${384 * scale} ${132 * scale}" fill="none" stroke="${teal}" stroke-width="${stroke}" stroke-linecap="round"/>
-  <rect x="${cardX}" y="${cardY}" width="${cardW}" height="${cardH}" rx="${radius}" fill="${cream}"/>
-  <path d="M${144 * scale} ${296 * scale} C${190 * scale} ${234 * scale} ${238 * scale} ${272 * scale} ${288 * scale} ${204 * scale} C${318 * scale} ${164 * scale} ${354 * scale} ${154 * scale} ${392 * scale} ${146 * scale}" fill="none" stroke="${tealDark}" stroke-width="${22 * scale}" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M${154 * scale} ${332 * scale} H${354 * scale}" fill="none" stroke="${orange}" stroke-width="${safety}" stroke-linecap="round"/>
-  <circle cx="${156 * scale}" cy="${296 * scale}" r="${dot}" fill="${ink}"/>
-  <circle cx="${392 * scale}" cy="${146 * scale}" r="${dot}" fill="${orange}"/>
+function logoSvg(size = 512, options = {}) {
+  const { transparent = false } = options
+  const background = transparent
+    ? ''
+    : `<defs>
+        <linearGradient id="bg" x1="70" y1="40" x2="450" y2="500" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="${navy}"/>
+          <stop offset="0.62" stop-color="#0D1928"/>
+          <stop offset="1" stop-color="${deep}"/>
+        </linearGradient>
+        <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(360 128) rotate(120) scale(250)">
+          <stop offset="0" stop-color="${teal}" stop-opacity="0.46"/>
+          <stop offset="0.58" stop-color="${teal}" stop-opacity="0.12"/>
+          <stop offset="1" stop-color="${teal}" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+      <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+      <path d="M92 410 C172 360 268 330 420 116" fill="none" stroke="${teal}" stroke-width="24" stroke-linecap="round" opacity="0.22"/>`
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512">
+  ${background}
+  ${wonMark(1)}
 </svg>`
 }
 
 function splashSvg(width, height) {
-  const mark = Math.round(Math.min(width, height) * 0.34)
+  const mark = Math.round(Math.min(width, height) * 0.26)
   const x = Math.round((width - mark) / 2)
   const y = Math.round((height - mark) / 2)
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <rect width="${width}" height="${height}" fill="${navy}"/>
-  <path d="M${Math.round(width * 0.12)} ${Math.round(height * 0.68)} C${Math.round(width * 0.31)} ${Math.round(height * 0.42)} ${Math.round(width * 0.58)} ${Math.round(height * 0.33)} ${Math.round(width * 0.88)} ${Math.round(height * 0.23)}" fill="none" stroke="${teal}" stroke-width="${Math.max(8, Math.round(mark * 0.08))}" stroke-linecap="round" opacity="0.34"/>
-  <g transform="translate(${x} ${y})">
-    ${logoSvg(mark, { transparent: true }).replace(/<svg[^>]*>|<\/svg>/g, '')}
+  <circle cx="${Math.round(width * 0.64)}" cy="${Math.round(height * 0.36)}" r="${Math.round(mark * 1.18)}" fill="${teal}" opacity="0.08"/>
+  <g transform="translate(${x} ${y}) scale(${mark / 512})">
+    ${logoSvg(512).replace(/<svg[^>]*>|<\/svg>/g, '')}
   </g>
 </svg>`
 }
@@ -97,16 +107,8 @@ const mipmapSizes = {
 }
 
 for (const [density, size] of Object.entries(mipmapSizes)) {
-  await renderPng(
-    join(root, `android/app/src/main/res/mipmap-${density}/ic_launcher.png`),
-    logoSvg(512),
-    size,
-  )
-  await renderPng(
-    join(root, `android/app/src/main/res/mipmap-${density}/ic_launcher_round.png`),
-    logoSvg(512),
-    size,
-  )
+  await renderPng(join(root, `android/app/src/main/res/mipmap-${density}/ic_launcher.png`), logoSvg(512), size)
+  await renderPng(join(root, `android/app/src/main/res/mipmap-${density}/ic_launcher_round.png`), logoSvg(512), size)
   await renderPng(
     join(root, `android/app/src/main/res/mipmap-${density}/ic_launcher_foreground.png`),
     logoSvg(512, { transparent: true }),
@@ -140,32 +142,29 @@ const androidForeground = `<?xml version="1.0" encoding="utf-8"?>
     android:viewportHeight="108">
     <path
         android:fillColor="#00000000"
-        android:pathData="M15,76 C29,53 49,42 89,30"
-        android:strokeColor="${teal}"
-        android:strokeLineCap="round"
-        android:strokeWidth="9" />
-    <path
-        android:fillColor="${cream}"
-        android:pathData="M30,30 H73 C80,30 84,34 84,41 V78 C84,85 80,89 73,89 H30 C23,89 19,85 19,78 V41 C19,34 23,30 30,30 Z" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M31,67 C42,52 52,62 64,45 C71,36 80,34 89,32"
-        android:strokeColor="${tealDark}"
+        android:pathData="M31,25 L43,76 L54,33 L65,76 L77,25"
+        android:strokeColor="${cream}"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:strokeWidth="6" />
+        android:strokeWidth="8" />
     <path
         android:fillColor="#00000000"
-        android:pathData="M33,77 H73"
-        android:strokeColor="${orange}"
+        android:pathData="M29,45 H79"
+        android:strokeColor="${mint}"
         android:strokeLineCap="round"
-        android:strokeWidth="7" />
+        android:strokeWidth="5" />
     <path
-        android:fillColor="${ink}"
-        android:pathData="M31,62 m-4,0 a4,4 0,1 0,8 0 a4,4 0,1 0,-8 0" />
+        android:fillColor="#00000000"
+        android:pathData="M32,57 H76"
+        android:strokeColor="${mint}"
+        android:strokeLineCap="round"
+        android:strokeWidth="5" />
     <path
-        android:fillColor="${orange}"
-        android:pathData="M89,32 m-5,0 a5,5 0,1 0,10 0 a5,5 0,1 0,-10 0" />
+        android:fillColor="#00000000"
+        android:pathData="M39,84 H69"
+        android:strokeColor="${amber}"
+        android:strokeLineCap="round"
+        android:strokeWidth="5" />
 </vector>
 `
 
@@ -177,26 +176,29 @@ const androidSplashIcon = `<?xml version="1.0" encoding="utf-8"?>
     android:viewportHeight="144">
     <path
         android:fillColor="#00000000"
-        android:pathData="M25,96 C44,66 70,54 116,40"
-        android:strokeColor="${teal}"
-        android:strokeLineCap="round"
-        android:strokeWidth="13" />
-    <path
-        android:fillColor="${cream}"
-        android:pathData="M43,39 H96 C106,39 112,45 112,55 V101 C112,111 106,117 96,117 H43 C33,117 27,111 27,101 V55 C27,45 33,39 43,39 Z" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M45,89 C60,68 73,81 89,58 C99,45 110,43 121,40"
-        android:strokeColor="${tealDark}"
+        android:pathData="M42,32 L57,101 L72,44 L87,101 L102,32"
+        android:strokeColor="${cream}"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:strokeWidth="8" />
+        android:strokeWidth="11" />
     <path
         android:fillColor="#00000000"
-        android:pathData="M48,102 H96"
-        android:strokeColor="${orange}"
+        android:pathData="M39,60 H105"
+        android:strokeColor="${mint}"
         android:strokeLineCap="round"
-        android:strokeWidth="9" />
+        android:strokeWidth="7" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M43,77 H101"
+        android:strokeColor="${mint}"
+        android:strokeLineCap="round"
+        android:strokeWidth="7" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M52,112 H92"
+        android:strokeColor="${amber}"
+        android:strokeLineCap="round"
+        android:strokeWidth="7" />
 </vector>
 `
 
@@ -208,9 +210,9 @@ await ensureFile(
   join(root, 'android/app/src/main/res/values/colors.xml'),
   `<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">${tealDark}</color>
+    <color name="colorPrimary">#0F766E</color>
     <color name="colorPrimaryDark">${navy}</color>
-    <color name="colorAccent">${orange}</color>
+    <color name="colorAccent">${amber}</color>
     <color name="splashBackground">${navy}</color>
     <color name="appPageBackground">#F6F8FA</color>
 </resources>
