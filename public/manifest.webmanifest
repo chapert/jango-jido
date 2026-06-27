@@ -1,6 +1,6 @@
 {
-  "name": "돈길",
-  "short_name": "돈길",
+  "name": "머니플",
+  "short_name": "머니플",
   "description": "오늘 써도 되는 돈과 90일 잔고 흐름을 보여주는 금전계획 앱",
   "start_url": "/",
   "display": "standalone",

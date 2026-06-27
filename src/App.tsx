@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.2.0'
+const APP_VERSION = '0.3.0'
 const REPO_OWNER = 'chapert'
 const REPO_NAME = 'jango-jido'
 const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
@@ -514,7 +514,7 @@ function App() {
           status: 'available',
           version,
           url,
-          name: release.name || `돈길 ${version}`,
+          name: release.name || `머니플 ${version}`,
           notes: release.body,
         })
         return
@@ -621,7 +621,7 @@ function App() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `dongil-backup-${isoDate(new Date())}.json`
+    link.download = `moneypl-backup-${isoDate(new Date())}.json`
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -1169,7 +1169,7 @@ function App() {
             <BrandMark />
           </div>
           <div>
-            <strong>돈길</strong>
+            <strong>머니플</strong>
             <span>오늘 쓸 돈 코치</span>
           </div>
         </div>
