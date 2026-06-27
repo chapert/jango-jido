@@ -12,7 +12,7 @@
 - 목표저축 월별 필요 금액 계산
 - 큰 소비 시뮬레이션
 - JSON 백업/복원
-- GitHub Release 기반 인앱 업데이트 확인
+- Vercel 직접 APK 링크 기반 인앱 업데이트 확인
 
 ## 개발
 
@@ -52,19 +52,19 @@ android/app/build/outputs/apk/release/app-release.apk
 
 ## 업데이트 배포
 
-앱은 `chapert/jango-jido`의 최신 GitHub Release를 확인합니다. 새 태그 릴리즈에 APK가 올라가 있으면 앱 안에 다운로드 안내가 뜹니다.
+앱은 Vercel의 `version.json`을 확인합니다. 새 버전이 올라가 있으면 앱 안에 다운로드 안내가 뜨고, 다운로드 버튼은 Vercel의 직접 APK 링크를 엽니다.
 
 항상 최신 APK를 받는 고정 링크:
 
 ```text
-https://github.com/chapert/jango-jido/releases/latest/download/jango-jido.apk
+https://moneypl-apk-vercel.vercel.app/moneypl.apk
 ```
 
 태그 배포:
 
 ```bash
-git tag v0.3.2
-git push origin v0.3.2
+git tag v0.3.3
+git push origin v0.3.3
 ```
 
 GitHub Actions가 release APK를 빌드하려면 저장소 Secrets에 아래 값이 필요합니다.

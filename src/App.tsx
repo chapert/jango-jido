@@ -24,10 +24,9 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.3.2'
-const REPO_OWNER = 'chapert'
-const REPO_NAME = 'jango-jido'
-const RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`
+const APP_VERSION = '0.3.3'
+const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
+const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
 
 type Tab = 'home' | 'record' | 'plan' | 'goals' | 'settings'
@@ -75,12 +74,12 @@ type AppData = {
   goals: Goal[]
 }
 
-type ReleaseInfo = {
-  tag_name?: string
-  html_url?: string
+type UpdateManifest = {
+  version?: string
+  apkUrl?: string
+  url?: string
   name?: string
-  body?: string
-  assets?: { name: string; browser_download_url: string }[]
+  notes?: string
 }
 
 type UpdateState =
@@ -424,7 +423,7 @@ function UpdateBanner({
       <section className="updateBanner">
         <div>
           <strong>새 버전 {update.version}</strong>
-          <span>{update.name || 'GitHub 릴리즈에서 APK를 받을 수 있어요.'}</span>
+          <span>{update.name || 'Vercel 직접 링크로 APK를 받을 수 있어요.'}</span>
         </div>
         <button type="button" className="primary small" onClick={onDownload}>
           <CloudDownload size={16} />
@@ -501,20 +500,19 @@ function App() {
   const checkForUpdate = async (manual = false) => {
     setUpdate({ status: 'checking' })
     try {
-      const response = await fetch(RELEASE_API, { headers: { Accept: 'application/vnd.github+json' } })
-      if (!response.ok) throw new Error(`GitHub 응답 ${response.status}`)
-      const release = (await response.json()) as ReleaseInfo
-      const version = (release.tag_name || '').replace(/^v/i, '')
-      const apk = release.assets?.find((asset) => asset.name.toLowerCase().endsWith('.apk'))
-      const url = apk?.browser_download_url || release.html_url
+      const response = await fetch(`${UPDATE_MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' })
+      if (!response.ok) throw new Error(`업데이트 서버 응답 ${response.status}`)
+      const manifest = (await response.json()) as UpdateManifest
+      const version = (manifest.version || '').replace(/^v/i, '')
+      const url = manifest.apkUrl || manifest.url || FALLBACK_APK_URL
 
       if (version && url && compareVersions(version, APP_VERSION) > 0) {
         setUpdate({
           status: 'available',
           version,
           url,
-          name: release.name || `머니플 ${version}`,
-          notes: release.body,
+          name: manifest.name || `머니플 ${version}`,
+          notes: manifest.notes,
         })
         return
       }
@@ -1116,7 +1114,7 @@ function App() {
             <h2>업데이트</h2>
             <span className="pill">v{APP_VERSION}</span>
           </div>
-          <p className="softText">GitHub 최신 릴리즈를 확인하고 APK 다운로드 창을 엽니다.</p>
+          <p className="softText">Vercel 최신 APK 정보를 확인하고 바로 다운로드 창을 엽니다.</p>
           <div className="buttonRow">
             <button type="button" className="secondary" onClick={() => void checkForUpdate(true)}>
               <RefreshCw size={17} />
