@@ -10,14 +10,19 @@ import android.view.ViewGroup;
 import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.ConsoleMessage;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import androidx.webkit.WebViewAssetLoader;
 
 public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 4010;
+    private static final String ASSET_HOST = "appassets.androidplatform.net";
     private WebView webView;
+    private WebViewAssetLoader assetLoader;
     private ValueCallback<Uri[]> fileChooserCallback;
 
     @Override
@@ -36,14 +41,25 @@ public class MainActivity extends Activity {
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(true);
 
+        assetLoader = new WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+            .build();
+
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
-                if ("file".equals(uri.getScheme())) {
+                if (isAppAssetUrl(uri)) {
                     return false;
                 }
                 openExternal(uri);
@@ -53,7 +69,7 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri uri = Uri.parse(url);
-                if ("file".equals(uri.getScheme())) {
+                if (isAppAssetUrl(uri)) {
                     return false;
                 }
                 openExternal(uri);
@@ -62,6 +78,11 @@ public class MainActivity extends Activity {
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                return super.onConsoleMessage(consoleMessage);
+            }
+
             @Override
             public boolean onShowFileChooser(
                 WebView webView,
@@ -88,7 +109,7 @@ public class MainActivity extends Activity {
         );
 
         setContentView(webView);
-        webView.loadUrl("file:///android_asset/public/index.html");
+        webView.loadUrl("https://" + ASSET_HOST + "/assets/public/index.html");
     }
 
     @Override
@@ -129,5 +150,9 @@ public class MainActivity extends Activity {
             Intent settingsIntent = new Intent(Settings.ACTION_SETTINGS);
             startActivity(settingsIntent);
         }
+    }
+
+    private boolean isAppAssetUrl(Uri uri) {
+        return "https".equals(uri.getScheme()) && ASSET_HOST.equals(uri.getHost());
     }
 }
