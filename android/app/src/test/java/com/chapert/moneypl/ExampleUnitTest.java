@@ -1,4 +1,4 @@
-package com.chapert.jangojido;
+package com.chapert.moneypl;
 
 import static org.junit.Assert.*;
 

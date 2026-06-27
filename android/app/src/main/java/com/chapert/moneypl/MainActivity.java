@@ -1,4 +1,4 @@
-package com.chapert.jangojido;
+package com.chapert.moneypl;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
