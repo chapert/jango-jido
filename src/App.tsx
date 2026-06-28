@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.5.5'
+const APP_VERSION = '0.5.6'
 const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
@@ -108,10 +108,8 @@ type AutoCaptureCandidate = NativeAutoCaptureItem & {
 }
 
 type MoneyplAutoCapturePlugin = {
-  isNotificationAccessEnabled: () => Promise<{ enabled: boolean; smsEnabled?: boolean }>
+  isNotificationAccessEnabled: () => Promise<{ enabled: boolean }>
   openNotificationAccessSettings: () => Promise<void>
-  isSmsPermissionGranted?: () => Promise<{ enabled: boolean }>
-  requestSmsPermission?: () => Promise<void>
   getPendingNotifications: () => Promise<{ items: NativeAutoCaptureItem[] }>
   removePendingNotifications: (options: { ids: string[] }) => Promise<void>
   addListener: (
@@ -125,8 +123,6 @@ const MoneyplAutoCapture = registerPlugin<MoneyplAutoCapturePlugin>('MoneyplAuto
 type NativeAutoCaptureWindowBridge = {
   isNotificationAccessEnabled: () => string
   openNotificationAccessSettings: () => void
-  isSmsPermissionGranted?: () => string
-  requestSmsPermission?: () => void
   getPendingNotifications: () => string
   removePendingNotifications: (optionsJson: string) => void
 }
@@ -150,14 +146,9 @@ function createAutoCaptureBridge(): MoneyplAutoCapturePlugin | null {
     const native = window.MoneyplNativeAutoCapture
     return {
       isNotificationAccessEnabled: async () =>
-        parseNativeBridgeResult(native.isNotificationAccessEnabled(), { enabled: false, smsEnabled: false }),
+        parseNativeBridgeResult(native.isNotificationAccessEnabled(), { enabled: false }),
       openNotificationAccessSettings: async () => {
         native.openNotificationAccessSettings()
-      },
-      isSmsPermissionGranted: async () =>
-        parseNativeBridgeResult(native.isSmsPermissionGranted?.() || '{}', { enabled: false }),
-      requestSmsPermission: async () => {
-        native.requestSmsPermission?.()
       },
       getPendingNotifications: async () =>
         parseNativeBridgeResult(native.getPendingNotifications(), { items: [] }),
@@ -652,17 +643,11 @@ function App() {
   const [scenarioAmount, setScenarioAmount] = useState('300000')
   const [topUps, setTopUps] = useState<Record<string, string>>({})
   const [notificationAccessEnabled, setNotificationAccessEnabled] = useState(false)
-  const [smsCaptureEnabled, setSmsCaptureEnabled] = useState(false)
   const [autoCaptureItems, setAutoCaptureItems] = useState<NativeAutoCaptureItem[]>([])
   const [autoCaptureMessage, setAutoCaptureMessage] = useState('')
   const autoCaptureBridge = useMemo(() => createAutoCaptureBridge(), [])
   const isAutoCaptureReady = ENABLE_NATIVE_AUTO_CAPTURE && Boolean(autoCaptureBridge)
-  const autoCaptureStatusLabel = notificationAccessEnabled || smsCaptureEnabled
-    ? [
-      notificationAccessEnabled ? '알림 연결됨' : null,
-      smsCaptureEnabled ? '문자 연결됨' : null,
-    ].filter(Boolean).join(' · ')
-    : '권한 연결 필요'
+  const autoCaptureStatusLabel = notificationAccessEnabled ? '알림 연결됨' : '권한 연결 필요'
 
   const recentTransactions = [...data.transactions]
     .sort((a, b) => parseIso(b.date).getTime() - parseIso(a.date).getTime())
@@ -691,22 +676,13 @@ function App() {
 
     try {
       const [access, pending] = await Promise.all([
-        autoCaptureBridge?.isNotificationAccessEnabled() || Promise.resolve({ enabled: false, smsEnabled: false }),
+        autoCaptureBridge?.isNotificationAccessEnabled() || Promise.resolve({ enabled: false }),
         autoCaptureBridge?.getPendingNotifications() || Promise.resolve({ items: [] }),
       ])
       setNotificationAccessEnabled(access.enabled)
-      setSmsCaptureEnabled(Boolean(access.smsEnabled))
       setAutoCaptureItems(pending.items || [])
       if (!silent) {
-        if (access.enabled && access.smsEnabled) {
-          setAutoCaptureMessage('알림·문자 연결됨')
-        } else if (access.enabled) {
-          setAutoCaptureMessage('알림 연결됨')
-        } else if (access.smsEnabled) {
-          setAutoCaptureMessage('문자 연결됨')
-        } else {
-          setAutoCaptureMessage('권한 필요')
-        }
+        setAutoCaptureMessage(access.enabled ? '알림 연결됨' : '권한 필요')
       }
     } catch (error) {
       setAutoCaptureMessage(error instanceof Error ? error.message : '자동 기록을 확인하지 못했어요.')
@@ -843,7 +819,6 @@ function App() {
     }
 
     try {
-      await autoCaptureBridge?.requestSmsPermission?.()
       await autoCaptureBridge?.openNotificationAccessSettings()
       setAutoCaptureMessage('권한을 켜주세요')
     } catch {
@@ -1024,10 +999,10 @@ function App() {
                 <Bell size={15} />
                 자동 기록
               </span>
-              <h2>{notificationAccessEnabled || smsCaptureEnabled ? '후보 대기 중' : '알림 연결'}</h2>
-              <p>{notificationAccessEnabled || smsCaptureEnabled ? '새 내역이 오면 표시됩니다.' : '알림·문자 후보 수집'}</p>
+              <h2>{notificationAccessEnabled ? '후보 대기 중' : '알림 연결'}</h2>
+              <p>{notificationAccessEnabled ? '새 내역이 오면 표시됩니다.' : '은행·카드 알림 후보 수집'}</p>
             </div>
-            <button type="button" className={notificationAccessEnabled || smsCaptureEnabled ? 'secondary small' : 'primary small'} onClick={openAutoCaptureSettings}>
+            <button type="button" className={notificationAccessEnabled ? 'secondary small' : 'primary small'} onClick={openAutoCaptureSettings}>
               권한 연결
             </button>
           </section>
@@ -1153,7 +1128,7 @@ function App() {
               <Bell size={15} />
               자동 후보
             </span>
-            <h2>알림·문자 후보</h2>
+            <h2>알림 후보</h2>
           </div>
           <span className="pill">{autoCandidates.length}건</span>
         </div>
@@ -1163,7 +1138,7 @@ function App() {
             <RefreshCw size={17} />
             새로고침
           </button>
-          <button type="button" className={notificationAccessEnabled || smsCaptureEnabled ? 'ghost' : 'primary'} onClick={openAutoCaptureSettings}>
+          <button type="button" className={notificationAccessEnabled ? 'ghost' : 'primary'} onClick={openAutoCaptureSettings}>
             <Bell size={17} />
             권한 연결
           </button>
@@ -1530,9 +1505,9 @@ function App() {
             </div>
             <Bell size={18} />
           </div>
-          <p className="softText">알림·문자 후보를 폰 안에만 저장합니다.</p>
+          <p className="softText">은행·카드 알림 후보를 폰 안에만 저장합니다.</p>
           <div className="buttonRow">
-            <button type="button" className={notificationAccessEnabled || smsCaptureEnabled ? 'secondary' : 'primary'} onClick={openAutoCaptureSettings}>
+            <button type="button" className={notificationAccessEnabled ? 'secondary' : 'primary'} onClick={openAutoCaptureSettings}>
               <Bell size={17} />
               권한 연결
             </button>

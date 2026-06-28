@@ -1,12 +1,9 @@
 package com.chapert.moneypl.compat;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.ViewGroup;
@@ -25,7 +22,6 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 4010;
-    private static final int SMS_PERMISSION_REQUEST = 4011;
     private static final String ASSET_HOST = "appassets.androidplatform.net";
     private static WeakReference<MainActivity> activeActivity;
     private WebView webView;
@@ -129,21 +125,6 @@ public class MainActivity extends Activity {
         activity.emitAutoCapture(item);
     }
 
-    boolean isSmsPermissionGranted() {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-            || checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    void requestSmsPermissionFromBridge() {
-        if (isSmsPermissionGranted()) {
-            emitPermissionState();
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[] { Manifest.permission.RECEIVE_SMS }, SMS_PERMISSION_REQUEST);
-        }
-    }
-
     @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
@@ -163,14 +144,6 @@ public class MainActivity extends Activity {
         Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
         fileChooserCallback.onReceiveValue(result);
         fileChooserCallback = null;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == SMS_PERMISSION_REQUEST) {
-            emitPermissionState();
-        }
     }
 
     @Override
@@ -208,11 +181,4 @@ public class MainActivity extends Activity {
         webView.post(() -> webView.evaluateJavascript(script, null));
     }
 
-    private void emitPermissionState() {
-        if (webView == null) {
-            return;
-        }
-        String script = "window.dispatchEvent(new CustomEvent('moneypl-auto-capture-permission'));";
-        webView.post(() -> webView.evaluateJavascript(script, null));
-    }
 }

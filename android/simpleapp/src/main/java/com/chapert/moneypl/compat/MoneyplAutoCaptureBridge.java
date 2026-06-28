@@ -19,7 +19,6 @@ final class MoneyplAutoCaptureBridge {
         JSONObject result = new JSONObject();
         try {
             result.put("enabled", MoneyplAutoCaptureStore.isNotificationAccessEnabled(activity));
-            result.put("smsEnabled", activity.isSmsPermissionGranted());
         } catch (JSONException ignored) {
             // Return whatever was already written.
         }
@@ -51,19 +50,4 @@ final class MoneyplAutoCaptureBridge {
         });
     }
 
-    @JavascriptInterface
-    public String isSmsPermissionGranted() {
-        JSONObject result = new JSONObject();
-        try {
-            result.put("enabled", activity.isSmsPermissionGranted());
-        } catch (JSONException ignored) {
-            // Return default object.
-        }
-        return result.toString();
-    }
-
-    @JavascriptInterface
-    public void requestSmsPermission() {
-        activity.runOnUiThread(activity::requestSmsPermissionFromBridge);
-    }
 }
