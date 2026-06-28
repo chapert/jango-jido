@@ -7,15 +7,15 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.chapert.moneypl.compat"
+    namespace = "com.chapert.moneypl.clean"
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.chapert.moneypl.compat"
+        applicationId "com.chapert.moneypl.clean"
         minSdkVersion 21
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 560
-        versionName "0.5.6"
+        versionCode 570
+        versionName "0.5.7"
     }
 
     signingConfigs {

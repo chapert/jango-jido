@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.5.6'
+const APP_VERSION = '0.5.7'
 const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
