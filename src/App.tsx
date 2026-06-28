@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.5.4'
+const APP_VERSION = '0.5.5'
 const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
@@ -699,13 +699,13 @@ function App() {
       setAutoCaptureItems(pending.items || [])
       if (!silent) {
         if (access.enabled && access.smsEnabled) {
-          setAutoCaptureMessage('알림과 문자 자동 후보가 연결됐어요.')
+          setAutoCaptureMessage('알림·문자 연결됨')
         } else if (access.enabled) {
-          setAutoCaptureMessage('은행·카드 앱 알림 후보가 연결됐어요. 문자 권한도 켤 수 있어요.')
+          setAutoCaptureMessage('알림 연결됨')
         } else if (access.smsEnabled) {
-          setAutoCaptureMessage('SMS 자동 후보가 연결됐어요. 알림 접근도 켤 수 있어요.')
+          setAutoCaptureMessage('문자 연결됨')
         } else {
-          setAutoCaptureMessage('알림 접근 또는 문자 권한을 켜야 후보를 받을 수 있어요.')
+          setAutoCaptureMessage('권한 필요')
         }
       }
     } catch (error) {
@@ -721,7 +721,7 @@ function App() {
     let listener: PluginListenerHandle | undefined
     void autoCaptureBridge?.addListener('notificationCaptured', (event) => {
       setAutoCaptureItems((current) => [event.item, ...current.filter((item) => item.id !== event.item.id)].slice(0, 80))
-      setAutoCaptureMessage('새 자동 기록 후보가 들어왔어요.')
+      setAutoCaptureMessage('새 후보 도착')
     })?.then((handle) => {
       listener = handle
     })
@@ -845,7 +845,7 @@ function App() {
     try {
       await autoCaptureBridge?.requestSmsPermission?.()
       await autoCaptureBridge?.openNotificationAccessSettings()
-      setAutoCaptureMessage('SMS 권한을 허용하고, 설정에서 머니플 알림 접근도 켜주세요.')
+      setAutoCaptureMessage('권한을 켜주세요')
     } catch {
       setAutoCaptureMessage('자동 기록 권한 설정을 열지 못했어요.')
     }
@@ -924,7 +924,7 @@ function App() {
 
   const renderHome = () => {
     const isSafe = plan.monthEndBalance >= data.profile.safetyBuffer
-    const statusText = isSafe ? '이번 달은 안전권이에요' : '이번 달 방어가 필요해요'
+    const statusText = isSafe ? '안전권' : '방어 필요'
     const budgetRatio = data.profile.monthlyLivingBudget > 0
       ? Math.min(100, (plan.variableSpent / data.profile.monthlyLivingBudget) * 100)
       : 0
@@ -946,9 +946,9 @@ function App() {
             </span>
             <span className="pill">{plan.daysLeft}일 남음</span>
           </div>
-          <p className="heroLabel">오늘 쓸 수 있는 돈</p>
+          <p className="heroLabel">오늘 예산</p>
           <strong className="safeAmount">{won(plan.safeDaily)}</strong>
-          <p className="heroHint">고정비, 목표저축, 안전잔고를 먼저 빼고 계산한 하루 기준입니다.</p>
+          <p className="heroHint">고정비·목표·안전잔고 반영</p>
 
           <div className="heroStats">
             <div>
@@ -965,7 +965,7 @@ function App() {
         <section className="quickCard">
           <div className="sectionHeader">
             <h2>바로 기록</h2>
-            <span>오늘 지출 {won(todaySpent)}</span>
+            <span>오늘 {won(todaySpent)}</span>
           </div>
             <div className="quickForm">
               <input
@@ -1024,8 +1024,8 @@ function App() {
                 <Bell size={15} />
                 자동 기록
               </span>
-              <h2>{notificationAccessEnabled || smsCaptureEnabled ? '새 후보를 기다리는 중' : '은행 알림 연결하기'}</h2>
-              <p>{notificationAccessEnabled || smsCaptureEnabled ? '은행·카드 알림과 문자가 오면 여기에 먼저 뜹니다.' : '권한을 켜면 알림과 SMS를 후보로 모읍니다.'}</p>
+              <h2>{notificationAccessEnabled || smsCaptureEnabled ? '후보 대기 중' : '알림 연결'}</h2>
+              <p>{notificationAccessEnabled || smsCaptureEnabled ? '새 내역이 오면 표시됩니다.' : '알림·문자 후보 수집'}</p>
             </div>
             <button type="button" className={notificationAccessEnabled || smsCaptureEnabled ? 'secondary small' : 'primary small'} onClick={openAutoCaptureSettings}>
               권한 연결
@@ -1042,19 +1042,19 @@ function App() {
             </div>
           </article>
           <article className="metric">
-            <span>앞으로 고정비</span>
+            <span>남은 고정비</span>
             <strong>{won(plan.recurringExpenseLeft)}</strong>
-            <small>이번 달 남은 자동 지출</small>
+            <small>이번 달</small>
           </article>
           <article className="metric">
             <span>목표저축</span>
             <strong>{won(plan.goalMonthlyNeed)}</strong>
-            <small>월별 필요 금액</small>
+            <small>월 필요</small>
           </article>
           <article className="metric">
-            <span>위험 신호</span>
+            <span>90일 위험</span>
             <strong>{plan.firstRisk ? parseIso(plan.firstRisk.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : '없음'}</strong>
-            <small>90일 최저 {won(plan.lowestPoint.balance)}</small>
+            <small>최저 {won(plan.lowestPoint.balance)}</small>
           </article>
         </section>
 
@@ -1063,9 +1063,9 @@ function App() {
             <div>
               <span className="eyebrow muted">
                 <ReceiptText size={15} />
-                최근 기록
+                최근 내역
               </span>
-              <h2>마지막으로 쓴 돈</h2>
+              <h2>최근 기록</h2>
             </div>
             <button type="button" className="ghost small" onClick={() => setActiveTab('record')}>
               전체
@@ -1103,9 +1103,9 @@ function App() {
           <div>
             <span className="eyebrow muted">
               <ReceiptText size={15} />
-              빠른 기록
+              직접 입력
             </span>
-            <h2>쓰자마자 잔고와 계획에 반영</h2>
+            <h2>수입·지출 기록</h2>
           </div>
         </div>
 
@@ -1151,9 +1151,9 @@ function App() {
           <div>
             <span className="eyebrow muted">
               <Bell size={15} />
-              자동 기록 후보
+              자동 후보
             </span>
-            <h2>은행·카드 알림과 문자에서 읽은 내역</h2>
+            <h2>알림·문자 후보</h2>
           </div>
           <span className="pill">{autoCandidates.length}건</span>
         </div>
@@ -1199,7 +1199,7 @@ function App() {
               </article>
             ))
           ) : (
-            <EmptyState icon={Bell} title="자동 기록 후보가 비어 있어요" />
+            <EmptyState icon={Bell} title="후보 없음" />
           )}
         </div>
       </section>
@@ -1237,7 +1237,7 @@ function App() {
 
         <article className="sectionBlock">
           <div className="sectionHeader">
-            <h2>이번 달 지출 분포</h2>
+            <h2>지출 분포</h2>
           </div>
           <div className="categoryList">
             {plan.categorySpend.length ? (
@@ -1253,7 +1253,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <EmptyState icon={BarChart3} title="이번 달 지출 데이터가 비어 있어요" />
+              <EmptyState icon={BarChart3} title="지출 데이터 없음" />
             )}
           </div>
         </article>
@@ -1287,7 +1287,7 @@ function App() {
               <Repeat size={15} />
               고정 돈 흐름
             </span>
-            <h2>매달 반복되는 돈만 관리</h2>
+            <h2>반복 지출·수입</h2>
           </div>
         </div>
 
@@ -1308,7 +1308,7 @@ function App() {
         </div>
         <button type="button" className="primary full" onClick={addRecurring}>
           <Plus size={18} />
-          고정 항목 추가
+          추가
         </button>
 
         <div className="list recurringList">
@@ -1356,7 +1356,7 @@ function App() {
               </div>
             ))
           ) : (
-            <EmptyState icon={Repeat} title="고정 항목이 비어 있어요" />
+            <EmptyState icon={Repeat} title="고정 항목 없음" />
           )}
         </div>
       </section>
@@ -1366,9 +1366,9 @@ function App() {
           <div>
             <span className="eyebrow muted">
               <Target size={15} />
-              저축 목표
+              목표
             </span>
-            <h2>필요할 때만 쓰는 보조 계획</h2>
+            <h2>저축 목표</h2>
           </div>
         </div>
         <div className="formGrid">
@@ -1379,7 +1379,7 @@ function App() {
         </div>
         <button type="button" className="secondary full" onClick={addGoal}>
           <Plus size={18} />
-          목표 추가
+          추가
         </button>
 
         <div className="goalsGrid">
@@ -1446,7 +1446,7 @@ function App() {
               )
             })
           ) : (
-            <EmptyState icon={Target} title="저축 목표는 없어도 괜찮아요" />
+            <EmptyState icon={Target} title="목표 없음" />
           )}
         </div>
       </section>
@@ -1456,9 +1456,9 @@ function App() {
           <div>
             <span className="eyebrow muted">
               <BarChart3 size={15} />
-              예측
+              전망
             </span>
-            <h2>다가오는 90일 잔고</h2>
+            <h2>90일 잔고</h2>
           </div>
           <span className="pill">최저 {won(plan.lowestPoint.balance)}</span>
         </div>
@@ -1483,9 +1483,9 @@ function App() {
           <div>
             <span className="eyebrow muted">
               <AlertTriangle size={15} />
-              미리 계산
+              계산
             </span>
-            <h2>큰돈 쓰기 전 확인</h2>
+            <h2>큰 소비 체크</h2>
           </div>
         </div>
         <div className="scenarioBox">
@@ -1507,9 +1507,9 @@ function App() {
           <div>
             <span className="eyebrow muted">
               <Landmark size={15} />
-              기본 돈 설정
+              기본값
             </span>
-            <h2>계산의 기준값</h2>
+            <h2>돈 설정</h2>
           </div>
         </div>
         <div className="formGrid">
@@ -1530,7 +1530,7 @@ function App() {
             </div>
             <Bell size={18} />
           </div>
-          <p className="softText">은행·카드 앱 알림과 새 SMS를 폰 안에서만 후보로 모읍니다.</p>
+          <p className="softText">알림·문자 후보를 폰 안에만 저장합니다.</p>
           <div className="buttonRow">
             <button type="button" className={notificationAccessEnabled || smsCaptureEnabled ? 'secondary' : 'primary'} onClick={openAutoCaptureSettings}>
               <Bell size={17} />
@@ -1549,7 +1549,7 @@ function App() {
             <h2>업데이트</h2>
             <span className="pill">v{APP_VERSION}</span>
           </div>
-          <p className="softText">Vercel 최신 APK 정보를 확인하고 바로 다운로드 창을 엽니다.</p>
+          <p className="softText">새 APK를 바로 받을 수 있습니다.</p>
           <div className="buttonRow">
             <button type="button" className="secondary" onClick={() => void checkForUpdate(true)}>
               <RefreshCw size={17} />
@@ -1570,7 +1570,7 @@ function App() {
             <h2>백업</h2>
             <ListChecks size={18} />
           </div>
-          <p className="softText">폰을 바꾸거나 테스트 중 초기화할 때 JSON으로 내보내고 다시 불러올 수 있어요.</p>
+          <p className="softText">데이터를 JSON으로 저장합니다.</p>
           <div className="buttonRow">
             <button type="button" className="secondary" onClick={exportData}>
               <Download size={17} />

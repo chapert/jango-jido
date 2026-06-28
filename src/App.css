@@ -2,7 +2,7 @@
   min-height: 100svh;
   padding-bottom: 92px;
   background:
-    linear-gradient(180deg, #f5f7f1 0%, #eef3ef 46%, #f8faf8 100%);
+    linear-gradient(180deg, #fff1d1 0%, #f6ead0 42%, #edf1df 100%);
   color: var(--ink);
 }
 
@@ -22,8 +22,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: max(12px, env(safe-area-inset-top)) 16px 10px;
-  background: rgba(245, 247, 241, 0.9);
-  border-bottom: 1px solid rgba(26, 48, 41, 0.08);
+  background: rgba(255, 244, 219, 0.92);
+  border-bottom: 1px solid rgba(78, 59, 25, 0.1);
   backdrop-filter: blur(18px);
   box-sizing: border-box;
 }
@@ -45,13 +45,15 @@
 }
 
 .brandMark {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   overflow: hidden;
   flex: 0 0 auto;
   border-radius: 8px;
-  background: #123b31;
-  box-shadow: 0 10px 24px rgba(18, 59, 49, 0.22);
+  background: #103826;
+  box-shadow:
+    0 12px 28px rgba(12, 46, 31, 0.26),
+    0 0 0 1px rgba(255, 239, 199, 0.75);
 }
 
 .brandMark img {
@@ -63,7 +65,7 @@
 
 .brand strong {
   display: block;
-  color: #16241f;
+  color: #123222;
   font-size: 17px;
   line-height: 1.05;
 }
@@ -77,7 +79,7 @@
 .forecastRow span,
 .softText,
 .statusText {
-  color: #66746d;
+  color: #716a58;
 }
 
 .brand span {
@@ -119,10 +121,10 @@ button,
 .metric,
 .goalItem,
 .updateBanner {
-  border: 1px solid rgba(26, 48, 41, 0.1);
+  border: 1px solid rgba(116, 84, 34, 0.14);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 14px 34px rgba(26, 48, 41, 0.08);
+  background: rgba(255, 249, 234, 0.96);
+  box-shadow: 0 16px 38px rgba(49, 43, 25, 0.11);
 }
 
 .todayHero {
@@ -130,14 +132,19 @@ button,
   gap: 11px;
   padding: 18px;
   background:
-    linear-gradient(150deg, rgba(15, 83, 68, 0.96), rgba(36, 113, 85, 0.9) 58%, rgba(224, 180, 73, 0.86));
+    linear-gradient(135deg, rgba(240, 191, 67, 0.2), transparent 42%),
+    linear-gradient(152deg, #062818 0%, #0e4930 56%, #173727 100%);
   color: #fffaf0;
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 226, 142, 0.34);
+  box-shadow:
+    0 22px 50px rgba(8, 45, 29, 0.28),
+    inset 0 1px 0 rgba(255, 246, 219, 0.24);
 }
 
 .todayHero.risk {
   background:
-    linear-gradient(150deg, rgba(94, 42, 37, 0.96), rgba(154, 76, 56, 0.9) 58%, rgba(224, 180, 73, 0.82));
+    linear-gradient(135deg, rgba(240, 191, 67, 0.2), transparent 42%),
+    linear-gradient(152deg, #3d221b 0%, #8d4938 58%, #18402b 100%);
 }
 
 .heroTop,
@@ -170,7 +177,7 @@ button,
 
 .heroLabel {
   margin: 0 0 -6px;
-  color: rgba(255, 250, 240, 0.76);
+  color: rgba(255, 241, 205, 0.78);
   font-size: 13px;
   font-weight: 800;
 }
@@ -180,12 +187,13 @@ button,
   font-size: clamp(42px, 12vw, 72px);
   line-height: 0.96;
   letter-spacing: 0;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .heroHint {
   max-width: 480px;
   margin: 0;
-  color: rgba(255, 250, 240, 0.78);
+  color: rgba(255, 241, 205, 0.82);
   line-height: 1.5;
 }
 
@@ -198,7 +206,8 @@ button,
   min-width: 0;
   padding: 10px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 244, 213, 0.13);
+  border: 1px solid rgba(255, 244, 213, 0.14);
 }
 
 .heroStats span,
@@ -207,7 +216,7 @@ button,
 }
 
 .heroStats span {
-  color: rgba(255, 250, 240, 0.7);
+  color: rgba(255, 241, 205, 0.72);
   font-size: 12px;
 }
 
@@ -225,16 +234,17 @@ button,
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #ebf4ee;
-  color: #17604f;
+  background: #fff0c2;
+  color: #37502f;
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .todayHero .pill {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fffaf0;
+  background: rgba(255, 223, 134, 0.22);
+  color: #fff4d7;
+  border: 1px solid rgba(255, 232, 171, 0.22);
 }
 
 .quickCard,
@@ -256,7 +266,7 @@ button,
 .sectionHeader h2,
 .autoBrief h2 {
   margin: 2px 0 0;
-  color: #17231f;
+  color: #17281d;
   font-size: 18px;
   line-height: 1.2;
 }
@@ -292,18 +302,18 @@ select {
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
-  border: 1px solid #d5ded8;
+  border: 1px solid #ddcfac;
   border-radius: 8px;
-  background: #ffffff;
-  color: #17231f;
+  background: #fffdf5;
+  color: #17281d;
   box-sizing: border-box;
   outline: none;
 }
 
 input:focus,
 select:focus {
-  border-color: #27816c;
-  box-shadow: 0 0 0 3px rgba(39, 129, 108, 0.16);
+  border-color: #b98f2e;
+  box-shadow: 0 0 0 3px rgba(185, 143, 46, 0.18);
 }
 
 .field {
@@ -313,7 +323,7 @@ select:focus {
 }
 
 .field > span {
-  color: #5a6a62;
+  color: #5d644e;
   font-size: 13px;
   font-weight: 800;
 }
@@ -353,28 +363,30 @@ select:focus {
 }
 
 .primary {
-  background: #17604f;
-  color: #fffaf0;
+  background: linear-gradient(180deg, #14583c 0%, #0a3e29 100%);
+  color: #fff4d7;
+  box-shadow: 0 10px 22px rgba(10, 62, 41, 0.18);
 }
 
 .secondary,
 .fileButton {
-  border: 1px solid #d5ded8;
-  background: #ffffff;
-  color: #17231f;
+  border: 1px solid #ddcfac;
+  background: #fffdf5;
+  color: #17281d;
 }
 
 .ghost {
-  background: #edf2ee;
-  color: #25352f;
+  background: #f1ead7;
+  color: #31402d;
 }
 
 .updateButton {
   min-height: 38px;
   padding: 0 11px;
-  border: 1px solid rgba(26, 48, 41, 0.12);
-  background: rgba(255, 255, 255, 0.84);
-  color: #25352f;
+  border: 1px solid rgba(154, 119, 47, 0.2);
+  background: rgba(255, 250, 236, 0.9);
+  color: #24412f;
+  box-shadow: 0 8px 20px rgba(56, 47, 28, 0.08);
 }
 
 .small {
@@ -398,9 +410,9 @@ select:focus {
 .chip {
   min-height: 34px;
   padding: 0 10px;
-  border: 1px solid #d8e2dc;
-  background: #f6faf7;
-  color: #4f6259;
+  border: 1px solid #dec88e;
+  background: #fff3c9;
+  color: #445236;
   font-weight: 800;
 }
 
@@ -425,9 +437,23 @@ select:focus {
 .metric strong {
   display: block;
   margin: 6px 0 8px;
-  color: #17231f;
+  color: #17281d;
   font-size: 20px;
   line-height: 1.12;
+}
+
+.summaryGrid .metric:first-child {
+  background: #143c2a;
+  border-color: rgba(255, 226, 142, 0.28);
+}
+
+.summaryGrid .metric:first-child span,
+.summaryGrid .metric:first-child small {
+  color: rgba(255, 241, 205, 0.72);
+}
+
+.summaryGrid .metric:first-child strong {
+  color: #fff4d7;
 }
 
 .autoBrief {
@@ -443,7 +469,7 @@ select:focus {
 }
 
 .autoBriefAction strong {
-  color: #9b4535;
+  color: #aa5039;
   white-space: nowrap;
 }
 
@@ -464,16 +490,16 @@ select:focus {
   align-items: center;
   min-height: 56px;
   padding: 8px;
-  border: 1px solid #e0e7e2;
+  border: 1px solid #eadfbe;
   border-radius: 8px;
-  background: #fbfdfb;
+  background: #fffdf5;
 }
 
 .rowItem strong {
   display: block;
   min-width: 0;
   overflow: hidden;
-  color: #17231f;
+  color: #17281d;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -484,7 +510,7 @@ select:focus {
 }
 
 .rowItem em {
-  color: #a84f3a;
+  color: #aa5039;
   font-style: normal;
   font-weight: 900;
   white-space: nowrap;
@@ -494,30 +520,30 @@ select:focus {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: #fff1e7;
-  color: #b35a3f;
+  background: #fff0dc;
+  color: #b65a40;
 }
 
 .rowIcon.income,
 .income .rowIcon {
-  background: #e8f6ed;
-  color: #157448;
+  background: #e9f2dc;
+  color: #205f3d;
 }
 
 .incomeText {
-  color: #157448 !important;
+  color: #205f3d !important;
 }
 
 .dangerText {
-  color: #c4533d !important;
+  color: #c45a42 !important;
 }
 
 .iconButton {
   width: 36px;
   height: 36px;
   flex: 0 0 auto;
-  background: #edf2ee;
-  color: #66746d;
+  background: #f1ead7;
+  color: #716a58;
 }
 
 .segmented {
@@ -527,20 +553,20 @@ select:focus {
   padding: 5px;
   margin-bottom: 14px;
   border-radius: 8px;
-  background: #edf2ee;
+  background: #efe6cf;
 }
 
 .segmented button {
   min-height: 38px;
   background: transparent;
-  color: #66746d;
+  color: #716a58;
   font-weight: 850;
 }
 
 .segmented button.active {
-  background: #ffffff;
-  color: #17231f;
-  box-shadow: 0 8px 18px rgba(26, 48, 41, 0.08);
+  background: #fffdf5;
+  color: #173724;
+  box-shadow: 0 8px 18px rgba(61, 47, 22, 0.1);
 }
 
 .formGrid {
@@ -555,7 +581,7 @@ select:focus {
 }
 
 .categoryRow strong {
-  color: #17231f;
+  color: #17281d;
 }
 
 .progressTrack {
@@ -563,14 +589,14 @@ select:focus {
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #e4ebe6;
+  background: #eadfbe;
 }
 
 .progressTrack span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #27816c;
+  background: linear-gradient(90deg, #b98f2e, #1d6a48);
 }
 
 .progressTrack.large {
@@ -581,12 +607,12 @@ select:focus {
   width: 100%;
   height: 178px;
   overflow: hidden;
-  border: 1px solid #e0e7e2;
+  border: 1px solid #eadfbe;
   border-radius: 8px;
   background:
-    linear-gradient(#e9efeb 1px, transparent 1px),
-    linear-gradient(90deg, #eef3ef 1px, transparent 1px),
-    #fbfdfb;
+    linear-gradient(#efe6cf 1px, transparent 1px),
+    linear-gradient(90deg, #f4ead3 1px, transparent 1px),
+    #fffdf5;
   background-size: 100% 25%, 12.5% 100%, auto;
 }
 
@@ -602,14 +628,14 @@ select:focus {
 
 .cashLine {
   fill: none;
-  stroke: #27816c;
+  stroke: #1d6a48;
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .safetyLine {
-  stroke: #c4533d;
+  stroke: #c45a42;
   stroke-width: 2;
   stroke-dasharray: 7 7;
 }
@@ -631,21 +657,21 @@ select:focus {
 .scenarioResult {
   min-width: 210px;
   padding: 13px 14px;
-  border: 1px solid #cdded5;
+  border: 1px solid #d8c79e;
   border-radius: 8px;
-  background: #f1f8f4;
+  background: #fff6d9;
 }
 
 .scenarioResult span,
 .scenarioResult small {
   display: block;
-  color: #66746d;
+  color: #716a58;
 }
 
 .scenarioResult strong {
   display: block;
   margin: 4px 0;
-  color: #17604f;
+  color: #0f4d34;
   font-size: 24px;
 }
 
@@ -656,22 +682,22 @@ select:focus {
 .planStrip article {
   min-width: 0;
   padding: 14px;
-  border: 1px solid rgba(26, 48, 41, 0.1);
+  border: 1px solid rgba(116, 84, 34, 0.14);
   border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 10px 24px rgba(26, 48, 41, 0.06);
+  background: rgba(255, 249, 234, 0.96);
+  box-shadow: 0 10px 24px rgba(49, 43, 25, 0.08);
 }
 
 .planStrip span {
   display: block;
-  color: #66746d;
+  color: #716a58;
   font-size: 12px;
 }
 
 .planStrip strong {
   display: block;
   margin-top: 5px;
-  color: #17231f;
+  color: #17281d;
   font-size: 18px;
   line-height: 1.15;
 }
@@ -680,7 +706,7 @@ select:focus {
   width: 42px;
   height: 24px;
   padding: 3px;
-  background: #d9e2dd;
+  background: #e3d6b6;
 }
 
 .toggle span {
@@ -694,7 +720,7 @@ select:focus {
 
 .toggle span.on {
   transform: translateX(18px);
-  background: #17604f;
+  background: #0f4d34;
 }
 
 .forecastList {
@@ -704,13 +730,13 @@ select:focus {
 .forecastRow {
   min-height: 40px;
   padding: 0 12px;
-  border: 1px solid #e0e7e2;
+  border: 1px solid #eadfbe;
   border-radius: 8px;
-  background: #fbfdfb;
+  background: #fffdf5;
 }
 
 .forecastRow strong {
-  color: #17231f;
+  color: #17281d;
 }
 
 .goalsGrid {
@@ -718,8 +744,8 @@ select:focus {
 }
 
 .goalItem {
-  border-color: #e0e7e2;
-  background: #fbfdfb;
+  border-color: #eadfbe;
+  background: #fffdf5;
   box-shadow: none;
 }
 
@@ -730,7 +756,7 @@ select:focus {
 .goalAmount {
   display: block;
   margin-bottom: 12px;
-  color: #17231f;
+  color: #17281d;
   font-size: 18px;
   line-height: 1.2;
 }
@@ -754,13 +780,13 @@ select:focus {
   justify-content: space-between;
   gap: 12px;
   padding: 13px 14px;
-  border-color: #c5ddd2;
-  background: #eef8f2;
+  border-color: #d8c79e;
+  background: #fff6d9;
 }
 
 .updateBanner.subtle {
-  border-color: #efcfc4;
-  background: #fff6f0;
+  border-color: #e5b9a8;
+  background: #fff1e8;
 }
 
 .updateBanner strong,
@@ -797,9 +823,9 @@ select:focus {
   display: grid;
   gap: 10px;
   padding: 13px;
-  border: 1px solid #e0e7e2;
+  border: 1px solid #eadfbe;
   border-radius: 8px;
-  background: #fbfdfb;
+  background: #fffdf5;
 }
 
 .autoCandidateMain,
@@ -812,13 +838,13 @@ select:focus {
 
 .autoCandidate strong {
   display: block;
-  color: #17231f;
+  color: #17281d;
   font-size: 16px;
 }
 
 .autoCandidate span,
 .autoCandidate p {
-  color: #66746d;
+  color: #716a58;
 }
 
 .autoCandidate span {
@@ -826,7 +852,7 @@ select:focus {
 }
 
 .autoCandidate em {
-  color: #a84f3a;
+  color: #aa5039;
   font-style: normal;
   font-weight: 900;
   white-space: nowrap;
@@ -845,8 +871,8 @@ select:focus {
   display: grid;
   place-items: center;
   gap: 8px;
-  color: #66746d;
-  border: 1px dashed #cbd8d0;
+  color: #716a58;
+  border: 1px dashed #d9c79b;
   border-radius: 8px;
   text-align: center;
 }
@@ -861,10 +887,11 @@ select:focus {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   min-height: 66px;
   padding: 6px 8px max(6px, env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(26, 48, 41, 0.1);
-  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid rgba(116, 84, 34, 0.16);
+  background: rgba(255, 249, 234, 0.94);
   backdrop-filter: blur(18px);
   box-sizing: border-box;
+  box-shadow: 0 -12px 26px rgba(49, 43, 25, 0.08);
 }
 
 .bottomNav button {
@@ -873,12 +900,13 @@ select:focus {
   place-items: center;
   gap: 3px;
   background: transparent;
-  color: #7a8781;
+  color: #827865;
   font-size: 11px;
 }
 
 .bottomNav button.active {
-  color: #17604f;
+  color: #0f4d34;
+  background: #fff0c2;
 }
 
 @media (max-width: 620px) {
