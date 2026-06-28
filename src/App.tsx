@@ -6,8 +6,6 @@ import {
   BarChart3,
   Bell,
   CalendarDays,
-  Check,
-  ChevronRight,
   CircleDollarSign,
   CloudDownload,
   Download,
@@ -25,13 +23,13 @@ import {
 } from 'lucide-react'
 import './App.css'
 
-const APP_VERSION = '0.5.3'
+const APP_VERSION = '0.5.4'
 const UPDATE_MANIFEST_URL = 'https://moneypl-apk-vercel.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://moneypl-apk-vercel.vercel.app/moneypl.apk'
 const STORAGE_KEY = 'jango-jido-data-v1'
 const ENABLE_NATIVE_AUTO_CAPTURE = true
 
-type Tab = 'home' | 'record' | 'plan' | 'goals' | 'settings'
+type Tab = 'home' | 'record' | 'plan' | 'settings'
 type EntryType = 'expense' | 'income'
 
 type Profile = {
@@ -190,10 +188,9 @@ function createAutoCaptureBridge(): MoneyplAutoCapturePlugin | null {
 const categories = ['식비', '카페', '교통', '생활', '쇼핑', '고정비', '수입', '기타']
 
 const tabItems: { id: Tab; label: string; icon: typeof Wallet }[] = [
-  { id: 'home', label: '홈', icon: Wallet },
+  { id: 'home', label: '오늘', icon: Wallet },
   { id: 'record', label: '기록', icon: ReceiptText },
   { id: 'plan', label: '계획', icon: CalendarDays },
-  { id: 'goals', label: '목표', icon: Target },
   { id: 'settings', label: '설정', icon: Settings },
 ]
 
@@ -928,78 +925,52 @@ function App() {
   const renderHome = () => {
     const isSafe = plan.monthEndBalance >= data.profile.safetyBuffer
     const statusText = isSafe ? '이번 달은 안전권이에요' : '이번 달 방어가 필요해요'
+    const budgetRatio = data.profile.monthlyLivingBudget > 0
+      ? Math.min(100, (plan.variableSpent / data.profile.monthlyLivingBudget) * 100)
+      : 0
+    const today = isoDate(new Date())
+    const todaySpent = data.transactions
+      .filter((entry) => entry.type === 'expense' && entry.date === today)
+      .reduce((sum, entry) => sum + entry.amount, 0)
+    const latestAutoCandidate = autoCandidates[0]
 
     return (
       <main className="screen homeScreen">
         <UpdateBanner update={update} onCheck={() => void checkForUpdate(true)} onDownload={openUpdate} />
 
-        <section className="heroPanel">
-          <div className="heroCopy">
+        <section className={`todayHero ${isSafe ? 'safe' : 'risk'}`}>
+          <div className="heroTop">
             <span className="eyebrow">
               <ShieldCheck size={16} />
               {statusText}
             </span>
-            <h1>오늘 사용 가능</h1>
-            <strong className="safeAmount">{won(plan.safeDaily)}</strong>
-            <p>고정비, 목표저축, 안전잔고를 빼고 오늘 써도 되는 금액입니다.</p>
-          </div>
-          <div className="balanceBadge">
-            <span>현재 잔고</span>
-            <strong>{won(data.profile.currentBalance)}</strong>
-          </div>
-        </section>
-
-        <section className="metricGrid">
-          <article className="metric">
-            <span>월말 예상</span>
-            <strong className={plan.monthEndBalance < data.profile.safetyBuffer ? 'dangerText' : ''}>
-              {won(plan.monthEndBalance)}
-            </strong>
-            <small>안전잔고 {won(data.profile.safetyBuffer)}</small>
-          </article>
-          <article className="metric">
-            <span>생활비 남음</span>
-            <strong>{won(plan.remainingBudget)}</strong>
-            <small>이번 달 사용 {won(plan.variableSpent)}</small>
-          </article>
-          <article className="metric">
-            <span>목표저축 필요</span>
-            <strong>{won(plan.goalMonthlyNeed)}</strong>
-            <small>목표 {data.goals.length}개 기준</small>
-          </article>
-          <article className="metric">
-            <span>위험 신호</span>
-            <strong>{plan.firstRisk ? parseIso(plan.firstRisk.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : '없음'}</strong>
-            <small>90일 최저 {won(plan.lowestPoint.balance)}</small>
-          </article>
-        </section>
-
-        <section className="sectionBlock">
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow muted">
-                <BarChart3 size={15} />
-                90일 현금흐름
-              </span>
-              <h2>앞으로 잔고가 어디까지 내려가는지</h2>
-            </div>
             <span className="pill">{plan.daysLeft}일 남음</span>
           </div>
-          <CashflowChart points={plan.points} safetyBuffer={data.profile.safetyBuffer} />
+          <p className="heroLabel">오늘 쓸 수 있는 돈</p>
+          <strong className="safeAmount">{won(plan.safeDaily)}</strong>
+          <p className="heroHint">고정비, 목표저축, 안전잔고를 먼저 빼고 계산한 하루 기준입니다.</p>
+
+          <div className="heroStats">
+            <div>
+              <span>현재 잔고</span>
+              <strong>{won(data.profile.currentBalance)}</strong>
+            </div>
+            <div>
+              <span>월말 예상</span>
+              <strong className={isSafe ? '' : 'dangerText'}>{won(plan.monthEndBalance)}</strong>
+            </div>
+          </div>
         </section>
 
-        <section className="split">
-          <article className="sectionBlock compact">
-            <div className="sectionHeader">
-              <h2>오늘 빠른 입력</h2>
-              <button type="button" className="iconButton" onClick={() => setActiveTab('record')} aria-label="기록 화면 열기">
-                <ChevronRight size={18} />
-              </button>
-            </div>
+        <section className="quickCard">
+          <div className="sectionHeader">
+            <h2>바로 기록</h2>
+            <span>오늘 지출 {won(todaySpent)}</span>
+          </div>
             <div className="quickForm">
               <input
                 value={transactionForm.title}
-                placeholder="예: 커피"
+                placeholder="예: 커피, 점심"
                 onChange={(event) => setTransactionForm((current) => ({ ...current, title: event.target.value }))}
               />
               <input
@@ -1010,7 +981,7 @@ function App() {
               />
               <button type="button" className="primary" onClick={addTransaction}>
                 <Plus size={17} />
-                추가
+                기록
               </button>
             </div>
             <div className="chipRow">
@@ -1025,28 +996,101 @@ function App() {
                 </button>
               ))}
             </div>
-          </article>
+        </section>
 
-          <article className="sectionBlock compact">
-            <div className="sectionHeader">
-              <h2>코치 메모</h2>
-              <Bell size={18} />
+        {latestAutoCandidate ? (
+          <section className="sectionBlock autoBrief">
+            <div>
+              <span className="eyebrow muted">
+                <Bell size={15} />
+                자동 후보
+              </span>
+              <h2>{latestAutoCandidate.merchant}</h2>
+              <p>{latestAutoCandidate.appName} · {latestAutoCandidate.category}</p>
             </div>
-            <ul className="coachList">
-              <li>
-                <Check size={16} />
-                하루 {won(plan.safeDaily)} 안에서 쓰면 월말 안전잔고를 지킬 수 있어요.
-              </li>
-              <li>
-                <Check size={16} />
-                다음 고정비는 {plan.recurringExpenseLeft > 0 ? won(plan.recurringExpenseLeft) : '이번 달 없음'} 남아 있어요.
-              </li>
-              <li>
-                <Check size={16} />
-                큰 소비 전에는 계획 탭에서 바로 시뮬레이션해보세요.
-              </li>
-            </ul>
+            <div className="autoBriefAction">
+              <strong className={latestAutoCandidate.type === 'income' ? 'incomeText' : ''}>
+                {latestAutoCandidate.type === 'income' ? '+' : '-'}{won(latestAutoCandidate.amount)}
+              </strong>
+              <button type="button" className="primary small" onClick={() => addAutoCandidate(latestAutoCandidate)}>
+                기록
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className="sectionBlock autoBrief">
+            <div>
+              <span className="eyebrow muted">
+                <Bell size={15} />
+                자동 기록
+              </span>
+              <h2>{notificationAccessEnabled || smsCaptureEnabled ? '새 후보를 기다리는 중' : '은행 알림 연결하기'}</h2>
+              <p>{notificationAccessEnabled || smsCaptureEnabled ? '은행·카드 알림과 문자가 오면 여기에 먼저 뜹니다.' : '권한을 켜면 알림과 SMS를 후보로 모읍니다.'}</p>
+            </div>
+            <button type="button" className={notificationAccessEnabled || smsCaptureEnabled ? 'secondary small' : 'primary small'} onClick={openAutoCaptureSettings}>
+              권한 연결
+            </button>
+          </section>
+        )}
+
+        <section className="summaryGrid">
+          <article className="metric">
+            <span>생활비 남음</span>
+            <strong>{won(plan.remainingBudget)}</strong>
+            <div className="progressTrack">
+              <span style={{ width: `${budgetRatio}%` }} />
+            </div>
           </article>
+          <article className="metric">
+            <span>앞으로 고정비</span>
+            <strong>{won(plan.recurringExpenseLeft)}</strong>
+            <small>이번 달 남은 자동 지출</small>
+          </article>
+          <article className="metric">
+            <span>목표저축</span>
+            <strong>{won(plan.goalMonthlyNeed)}</strong>
+            <small>월별 필요 금액</small>
+          </article>
+          <article className="metric">
+            <span>위험 신호</span>
+            <strong>{plan.firstRisk ? parseIso(plan.firstRisk.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : '없음'}</strong>
+            <small>90일 최저 {won(plan.lowestPoint.balance)}</small>
+          </article>
+        </section>
+
+        <section className="sectionBlock recentBlock">
+          <div className="sectionHeader">
+            <div>
+              <span className="eyebrow muted">
+                <ReceiptText size={15} />
+                최근 기록
+              </span>
+              <h2>마지막으로 쓴 돈</h2>
+            </div>
+            <button type="button" className="ghost small" onClick={() => setActiveTab('record')}>
+              전체
+            </button>
+          </div>
+          <div className="list">
+            {recentTransactions.slice(0, 4).length ? (
+              recentTransactions.slice(0, 4).map((entry) => (
+                <div className="rowItem" key={entry.id}>
+                  <div className={`rowIcon ${entry.type}`}>
+                    {entry.type === 'income' ? <CircleDollarSign size={18} /> : <ReceiptText size={18} />}
+                  </div>
+                  <div>
+                    <strong>{entry.title}</strong>
+                    <span>{entry.category} · {parseIso(entry.date).toLocaleDateString('ko-KR')}</span>
+                  </div>
+                  <em className={entry.type === 'income' ? 'incomeText' : ''}>
+                    {entry.type === 'income' ? '+' : '-'}{won(entry.amount)}
+                  </em>
+                </div>
+              ))
+            ) : (
+              <EmptyState icon={ReceiptText} title="아직 기록이 없어요" />
+            )}
+          </div>
         </section>
       </main>
     )
@@ -1218,142 +1262,113 @@ function App() {
   )
 
   const renderPlan = () => (
-    <main className="screen">
+    <main className="screen planScreen">
+      <section className="planStrip">
+        <article>
+          <span>남은 고정비</span>
+          <strong>{won(plan.recurringExpenseLeft)}</strong>
+        </article>
+        <article>
+          <span>월 목표저축</span>
+          <strong>{won(plan.goalMonthlyNeed)}</strong>
+        </article>
+        <article>
+          <span>90일 최저</span>
+          <strong className={plan.lowestPoint.balance < data.profile.safetyBuffer ? 'dangerText' : ''}>
+            {won(plan.lowestPoint.balance)}
+          </strong>
+        </article>
+      </section>
+
       <section className="sectionBlock">
         <div className="sectionHeader">
           <div>
             <span className="eyebrow muted">
-              <AlertTriangle size={15} />
-              큰 소비 시뮬레이션
+              <Repeat size={15} />
+              고정 돈 흐름
             </span>
-            <h2>이 돈을 쓰면 계획이 어떻게 바뀌는지</h2>
+            <h2>매달 반복되는 돈만 관리</h2>
           </div>
         </div>
-        <div className="scenarioBox">
-          <Field label="예상 소비" value={scenarioAmount} type="number" suffix="원" onChange={setScenarioAmount} />
-          <div className="scenarioResult">
-            <span>소비 후 하루 사용 가능</span>
-            <strong>{won(scenario.safeDaily)}</strong>
-            <small>월말 예상 {won(scenario.monthEndBalance)}</small>
-          </div>
+
+        <div className="formGrid">
+          <Field label="이름" value={recurringForm.title} onChange={(value) => setRecurringForm((current) => ({ ...current, title: value }))} />
+          <Field label="금액" value={recurringForm.amount} type="number" suffix="원" onChange={(value) => setRecurringForm((current) => ({ ...current, amount: value }))} />
+          <Field label="매월 날짜" value={recurringForm.day} type="number" min={1} max={31} suffix="일" onChange={(value) => setRecurringForm((current) => ({ ...current, day: value }))} />
+          <label className="field">
+            <span>종류</span>
+            <select
+              value={recurringForm.type}
+              onChange={(event) => setRecurringForm((current) => ({ ...current, type: event.target.value as EntryType }))}
+            >
+              <option value="expense">지출</option>
+              <option value="income">수입</option>
+            </select>
+          </label>
+        </div>
+        <button type="button" className="primary full" onClick={addRecurring}>
+          <Plus size={18} />
+          고정 항목 추가
+        </button>
+
+        <div className="list recurringList">
+          {data.recurring.length ? (
+            data.recurring.map((item) => (
+              <div className="rowItem" key={item.id}>
+                <div className={`rowIcon ${item.type}`}>
+                  <Repeat size={17} />
+                </div>
+                <div>
+                  <strong>{item.title}</strong>
+                  <span>매월 {item.day}일 · {item.category}</span>
+                </div>
+                <em className={item.type === 'income' ? 'incomeText' : ''}>
+                  {item.type === 'income' ? '+' : '-'}{won(item.amount)}
+                </em>
+                <button
+                  type="button"
+                  className="toggle"
+                  aria-label={`${item.title} 활성화`}
+                  onClick={() =>
+                    setData((current) => ({
+                      ...current,
+                      recurring: current.recurring.map((entry) =>
+                        entry.id === item.id ? { ...entry, enabled: !entry.enabled } : entry,
+                      ),
+                    }))
+                  }
+                >
+                  <span className={item.enabled ? 'on' : ''} />
+                </button>
+                <button
+                  type="button"
+                  className="iconButton"
+                  aria-label={`${item.title} 삭제`}
+                  onClick={() =>
+                    setData((current) => ({
+                      ...current,
+                      recurring: current.recurring.filter((entry) => entry.id !== item.id),
+                    }))
+                  }
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))
+          ) : (
+            <EmptyState icon={Repeat} title="고정 항목이 비어 있어요" />
+          )}
         </div>
       </section>
 
-      <section className="split">
-        <article className="sectionBlock">
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow muted">
-                <Repeat size={15} />
-                반복 지출/수입
-              </span>
-              <h2>날짜가 있는 돈 흐름</h2>
-            </div>
-          </div>
-
-          <div className="formGrid">
-            <Field label="이름" value={recurringForm.title} onChange={(value) => setRecurringForm((current) => ({ ...current, title: value }))} />
-            <Field label="금액" value={recurringForm.amount} type="number" suffix="원" onChange={(value) => setRecurringForm((current) => ({ ...current, amount: value }))} />
-            <Field label="매월 날짜" value={recurringForm.day} type="number" min={1} max={31} suffix="일" onChange={(value) => setRecurringForm((current) => ({ ...current, day: value }))} />
-            <label className="field">
-              <span>종류</span>
-              <select
-                value={recurringForm.type}
-                onChange={(event) => setRecurringForm((current) => ({ ...current, type: event.target.value as EntryType }))}
-              >
-                <option value="expense">지출</option>
-                <option value="income">수입</option>
-              </select>
-            </label>
-          </div>
-          <button type="button" className="primary full" onClick={addRecurring}>
-            <Plus size={18} />
-            반복 항목 추가
-          </button>
-
-          <div className="list recurringList">
-            {data.recurring.length ? (
-              data.recurring.map((item) => (
-                <div className="rowItem" key={item.id}>
-                  <div className={`rowIcon ${item.type}`}>
-                    <Repeat size={17} />
-                  </div>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <span>매월 {item.day}일 · {item.category}</span>
-                  </div>
-                  <em className={item.type === 'income' ? 'incomeText' : ''}>
-                    {item.type === 'income' ? '+' : '-'}{won(item.amount)}
-                  </em>
-                  <button
-                    type="button"
-                    className="toggle"
-                    aria-label={`${item.title} 활성화`}
-                    onClick={() =>
-                      setData((current) => ({
-                        ...current,
-                        recurring: current.recurring.map((entry) =>
-                          entry.id === item.id ? { ...entry, enabled: !entry.enabled } : entry,
-                        ),
-                      }))
-                    }
-                  >
-                    <span className={item.enabled ? 'on' : ''} />
-                  </button>
-                  <button
-                    type="button"
-                    className="iconButton"
-                    aria-label={`${item.title} 삭제`}
-                    onClick={() =>
-                      setData((current) => ({
-                        ...current,
-                        recurring: current.recurring.filter((entry) => entry.id !== item.id),
-                      }))
-                    }
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))
-            ) : (
-              <EmptyState icon={Repeat} title="반복 항목이 비어 있어요" />
-            )}
-          </div>
-        </article>
-
-        <article className="sectionBlock">
-          <div className="sectionHeader">
-            <h2>다가오는 90일</h2>
-            <span className="pill">최저 {won(plan.lowestPoint.balance)}</span>
-          </div>
-          <div className="forecastList">
-            {plan.points
-              .filter((_, index) => index % 7 === 0 || index === 89)
-              .slice(0, 10)
-              .map((point) => (
-                <div className="forecastRow" key={point.date}>
-                  <span>{parseIso(point.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</span>
-                  <strong className={point.balance < data.profile.safetyBuffer ? 'dangerText' : ''}>
-                    {won(point.balance)}
-                  </strong>
-                </div>
-              ))}
-          </div>
-        </article>
-      </section>
-    </main>
-  )
-
-  const renderGoals = () => (
-    <main className="screen">
       <section className="sectionBlock">
         <div className="sectionHeader">
           <div>
             <span className="eyebrow muted">
               <Target size={15} />
-              목표저축
+              저축 목표
             </span>
-            <h2>목표를 월별 필요 금액으로 쪼개기</h2>
+            <h2>필요할 때만 쓰는 보조 계획</h2>
           </div>
         </div>
         <div className="formGrid">
@@ -1362,80 +1377,125 @@ function App() {
           <Field label="현재 모은 돈" value={goalForm.saved} type="number" suffix="원" onChange={(value) => setGoalForm((current) => ({ ...current, saved: value }))} />
           <Field label="목표 날짜" value={goalForm.dueDate} type="date" onChange={(value) => setGoalForm((current) => ({ ...current, dueDate: value }))} />
         </div>
-        <button type="button" className="primary full" onClick={addGoal}>
+        <button type="button" className="secondary full" onClick={addGoal}>
           <Plus size={18} />
           목표 추가
         </button>
+
+        <div className="goalsGrid">
+          {data.goals.length ? (
+            data.goals.map((goal) => {
+              const progress = Math.min(100, (goal.saved / Math.max(1, goal.target)) * 100)
+              const monthlyNeed = Math.ceil(Math.max(0, goal.target - goal.saved) / monthsUntil(goal.dueDate, new Date()))
+              return (
+                <article className="goalItem" key={goal.id}>
+                  <div className="sectionHeader">
+                    <div>
+                      <h2>{goal.title}</h2>
+                      <span>{parseIso(goal.dueDate).toLocaleDateString('ko-KR')}까지</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="iconButton"
+                      aria-label={`${goal.title} 삭제`}
+                      onClick={() =>
+                        setData((current) => ({
+                          ...current,
+                          goals: current.goals.filter((entry) => entry.id !== goal.id),
+                        }))
+                      }
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <strong className="goalAmount">{won(goal.saved)} / {won(goal.target)}</strong>
+                  <div className="progressTrack large">
+                    <span style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className="goalMeta">
+                    <span>{progress.toFixed(0)}%</span>
+                    <span>월 {won(monthlyNeed)}</span>
+                  </div>
+                  <div className="topUpRow">
+                    <input
+                      value={topUps[goal.id] || ''}
+                      placeholder="저축 반영"
+                      inputMode="numeric"
+                      onChange={(event) => setTopUps((current) => ({ ...current, [goal.id]: event.target.value }))}
+                    />
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => {
+                        const amount = numberValue(topUps[goal.id] || '')
+                        if (amount <= 0) return
+                        setData((current) => ({
+                          ...current,
+                          goals: current.goals.map((entry) =>
+                            entry.id === goal.id ? { ...entry, saved: Math.min(entry.target, entry.saved + amount) } : entry,
+                          ),
+                          profile: { ...current.profile, currentBalance: current.profile.currentBalance - amount },
+                        }))
+                        setTopUps((current) => ({ ...current, [goal.id]: '' }))
+                      }}
+                    >
+                      반영
+                    </button>
+                  </div>
+                </article>
+              )
+            })
+          ) : (
+            <EmptyState icon={Target} title="저축 목표는 없어도 괜찮아요" />
+          )}
+        </div>
       </section>
 
-      <section className="goalsGrid">
-        {data.goals.length ? (
-          data.goals.map((goal) => {
-            const progress = Math.min(100, (goal.saved / Math.max(1, goal.target)) * 100)
-            const monthlyNeed = Math.ceil(Math.max(0, goal.target - goal.saved) / monthsUntil(goal.dueDate, new Date()))
-            return (
-              <article className="goalItem" key={goal.id}>
-                <div className="sectionHeader">
-                  <div>
-                    <h2>{goal.title}</h2>
-                    <span>{parseIso(goal.dueDate).toLocaleDateString('ko-KR')}까지</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="iconButton"
-                    aria-label={`${goal.title} 삭제`}
-                    onClick={() =>
-                      setData((current) => ({
-                        ...current,
-                        goals: current.goals.filter((entry) => entry.id !== goal.id),
-                      }))
-                    }
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <strong className="goalAmount">{won(goal.saved)} / {won(goal.target)}</strong>
-                <div className="progressTrack large">
-                  <span style={{ width: `${progress}%` }} />
-                </div>
-                <div className="goalMeta">
-                  <span>{progress.toFixed(0)}%</span>
-                  <span>월 {won(monthlyNeed)} 필요</span>
-                </div>
-                <div className="topUpRow">
-                  <input
-                    value={topUps[goal.id] || ''}
-                    placeholder="저축 반영"
-                    inputMode="numeric"
-                    onChange={(event) => setTopUps((current) => ({ ...current, [goal.id]: event.target.value }))}
-                  />
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() => {
-                      const amount = numberValue(topUps[goal.id] || '')
-                      if (amount <= 0) return
-                      setData((current) => ({
-                        ...current,
-                        goals: current.goals.map((entry) =>
-                          entry.id === goal.id ? { ...entry, saved: Math.min(entry.target, entry.saved + amount) } : entry,
-                        ),
-                        profile: { ...current.profile, currentBalance: current.profile.currentBalance - amount },
-                      }))
-                      setTopUps((current) => ({ ...current, [goal.id]: '' }))
-                    }}
-                  >
-                    반영
-                  </button>
-                </div>
-              </article>
-            )
-          })
-        ) : (
-          <section className="sectionBlock">
-            <EmptyState icon={Target} title="아직 목표가 없어요" />
-          </section>
-        )}
+      <section className="sectionBlock">
+        <div className="sectionHeader">
+          <div>
+            <span className="eyebrow muted">
+              <BarChart3 size={15} />
+              예측
+            </span>
+            <h2>다가오는 90일 잔고</h2>
+          </div>
+          <span className="pill">최저 {won(plan.lowestPoint.balance)}</span>
+        </div>
+        <CashflowChart points={plan.points} safetyBuffer={data.profile.safetyBuffer} />
+        <div className="forecastList">
+          {plan.points
+            .filter((_, index) => index % 14 === 0 || index === 89)
+            .slice(0, 8)
+            .map((point) => (
+              <div className="forecastRow" key={point.date}>
+                <span>{parseIso(point.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</span>
+                <strong className={point.balance < data.profile.safetyBuffer ? 'dangerText' : ''}>
+                  {won(point.balance)}
+                </strong>
+              </div>
+            ))}
+        </div>
+      </section>
+
+      <section className="sectionBlock">
+        <div className="sectionHeader">
+          <div>
+            <span className="eyebrow muted">
+              <AlertTriangle size={15} />
+              미리 계산
+            </span>
+            <h2>큰돈 쓰기 전 확인</h2>
+          </div>
+        </div>
+        <div className="scenarioBox">
+          <Field label="예상 소비" value={scenarioAmount} type="number" suffix="원" onChange={setScenarioAmount} />
+          <div className="scenarioResult">
+            <span>소비 후 오늘 기준</span>
+            <strong>{won(scenario.safeDaily)}</strong>
+            <small>월말 예상 {won(scenario.monthEndBalance)}</small>
+          </div>
+        </div>
       </section>
     </main>
   )
@@ -1533,60 +1593,28 @@ function App() {
     home: renderHome(),
     record: renderRecord(),
     plan: renderPlan(),
-    goals: renderGoals(),
     settings: renderSettings(),
   }
 
   return (
     <div className="appShell">
-      <aside className="sidebar">
+      <header className="appHeader">
         <div className="brand">
           <div className="brandMark">
             <BrandMark />
           </div>
           <div>
             <strong>머니플</strong>
-            <span>오늘 쓸 돈 코치</span>
+            <span>{tabItems.find((item) => item.id === activeTab)?.label}</span>
           </div>
         </div>
+        <button type="button" className="updateButton" onClick={() => void checkForUpdate(true)}>
+          <RefreshCw size={16} />
+          <span>{update.status === 'checking' ? '확인 중' : '업데이트'}</span>
+        </button>
+      </header>
 
-        <nav className="navList" aria-label="주요 메뉴">
-          {tabItems.map((item) => {
-            const Icon = item.icon
-            return (
-              <button
-                type="button"
-                key={item.id}
-                className={activeTab === item.id ? 'active' : ''}
-                onClick={() => setActiveTab(item.id)}
-              >
-                <Icon size={19} />
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-
-        <div className="sidebarSummary">
-          <span>이번 달 생활비</span>
-          <strong>{won(plan.remainingBudget)}</strong>
-          <small>남은 예산</small>
-        </div>
-      </aside>
-
-      <div className="contentPane">
-        <header className="topBar">
-          <div>
-            <strong>{tabItems.find((item) => item.id === activeTab)?.label}</strong>
-          </div>
-          <button type="button" className="updateButton" onClick={() => void checkForUpdate(true)}>
-            <RefreshCw size={16} />
-            <span>{update.status === 'checking' ? '확인 중' : '업데이트'}</span>
-          </button>
-        </header>
-
-        {screens[activeTab]}
-      </div>
+      {screens[activeTab]}
 
       <nav className="bottomNav" aria-label="하단 메뉴">
         {tabItems.map((item) => {
