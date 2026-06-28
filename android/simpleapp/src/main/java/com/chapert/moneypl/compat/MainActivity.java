@@ -1,4 +1,4 @@
-package com.chapert.moneypl.clean;
+package com.chapert.moneypl.compat;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
